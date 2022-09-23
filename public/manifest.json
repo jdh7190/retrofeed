@@ -23,13 +23,13 @@
     {
       "src": "assets/images/icon_192_noback.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/png"
     },
     {
       "src": "assets/images/icon_512_noback.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "sizes": "500x500",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
