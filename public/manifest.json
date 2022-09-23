@@ -27,7 +27,7 @@
     },
     {
       "src": "assets/images/icon_512_noback.png",
-      "sizes": "500x500",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
