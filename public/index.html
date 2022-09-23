@@ -25,7 +25,7 @@
     <script src="./scripts/bsv-ecies.min.js"></script>
     <script src="./scripts/helpers.js"></script>
     <script src="./scripts/api.js"></script>
-    <script src="./scripts/run.browser.min.js"></script>
+    <!-- <script src="./scripts/run.browser.min.js"></script> -->
     <script src="./scripts/message.js"></script>
     <script src="./scripts/bSocial.js"></script>
     <script src="./scripts/post.js"></script>
@@ -34,7 +34,7 @@
    </head>
    <body>
     <div class="page">
-        <a href="/profile" class="prof"><img id="prof" class="avatar"></a>
+        <a href="/profile" class="prof" name="profile"><img id="prof" class="avatar" alt="avatar"></a>
         <h4 class="title center">retrofeed</h4>
         <a href="/info" class="help"><img class="question" src="assets/images/question_block_32.png" alt="question"></a>
         <div class="poster">
@@ -177,12 +177,9 @@
             arrops.forEach(o => { hexarrops.push(str2Hex(o)) })
             hexarrops.push('7c');
             const b2sign = hexArrayToBSVBuf(hexarrops);
-            const run = new Run({
-                owner: localStorage.ownerKey,
-                purse: 'L2ASAwmxR72tbBTTrtR87sjpXeRiAgTkrxa1G8GJuCBKGRGwgiQx'
-            });
-            const signature = bsvMessage.sign(b2sign.toString(), run.owner.bsvPrivateKey);
-            const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', run.owner.address, signature]);
+            const bsvPrivateKey = bsv.PrivateKey.fromWIF(localStorage.ownerKey);
+            const signature = bsvMessage.sign(b2sign.toString(), bsvPrivateKey);
+            const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', localStorage.ownerAddress, signature]);
             let hexarr = [];
             payload.forEach(p => { hexarr.push(str2Hex(p)) })
             const likePayload = { emoji, likedTxid, likedHandle: heart.data }
@@ -216,9 +213,9 @@
             arrops.forEach(o => { hexarrops.push(str2Hex(o)) })
             const b2sign = arrToBuf(hexarrops);
             try {
-                const run = new Run({ owner: localStorage.ownerKey, purse: PURSE_KEY });
-                const signature = bsvMessage.sign(b2sign.toString(), run.owner.bsvPrivateKey);
-                const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', run.owner.address, signature]);
+                const bsvPrivateKey = bsv.PrivateKey.fromWIF(localStorage.ownerKey);
+                const signature = bsvMessage.sign(b2sign.toString(), bsvPrivateKey);
+                const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', localStorage.ownerAddress, signature]);
                 let hexarr = [];
                 payload.forEach(p => { hexarr.push(str2Hex(p)) })
                 const p = await hcPost(hexarr, 'post', postPayload);

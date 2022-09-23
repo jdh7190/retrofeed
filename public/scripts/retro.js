@@ -76,6 +76,7 @@ const createRetroPost = (post, recent) => {
     profile.className = 'profile';
     const profileImg = document.createElement('img');
     profileImg.className = 'avatar';
+    profileImg.alt = 'postAvatar';
     profile.appendChild(profileImg);
     retropost.appendChild(profile);
     const userLink = document.createElement('a');
