@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+    <title>Profile - retrofeed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="../styles/profile.css" rel="stylesheet" type="text/css">
+    <link href="../styles/modal.css" rel="stylesheet" type="text/css">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/uyouthe/pwacss/pwacss.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap">
+    <link rel="apple-touch-icon" href="/images/images/icon-192x192.png">
+    <script src="../scripts/helpers.js"></script>
+   </head>
+   <body>
+    <div class="page">
+        <div class="header">
+            <h4 class="title">Profile</h4>
+            <a href="/profile" class="prof"><img id="prof" class="avatar"></a>
+            <a class="back" onclick="goBack()"><img src="../assets/images/back.png"></a>
+        </div>
+        <div class="profile center">
+            <!-- <div class="inventory" id="inventory">
+                <p>Inventory</p>
+                <p><span class="item text"><img class="icon" src="../assets/images/shua.png">SHUA x 7</span></p>
+                <p><span class="item text"><img class="icon" src="../assets/images/retro_64.png">retrotoken x 7</span></p>
+            </div> -->
+            <div class="btns center" id="login">
+                <p>Login</p>
+                <button class="btn handcash" onclick="hcLogin()">
+                    <img src="../assets/images/hc_icon.png" class="hcsvg">
+                    <span class="btn-text">HandCash</span>
+                </button>
+            </div>
+            <button class="btn logout" onclick="logout()">
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <p class="modal-text" id="modalTxt"></p>
+        </div>
+    </div>
+    </body>
+    <script src="../scripts/profile.js"></script>
+</html>

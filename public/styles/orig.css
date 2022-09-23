@@ -1,0 +1,376 @@
+/* @font-face {
+    font-family: 'SMT';
+    src: url('../assets/ndsbios.ttf') format('truetype')
+}
+@font-face {
+    font-family: 'KongText';
+    src: url('../assets/kongtext.ttf') format('truetype')
+} */
+body {
+    background-color:#212529;
+    font-family: 'Press Start 2P';
+}
+.page {
+    margin: 0 auto;
+    font-size: 13px;
+    min-width: 360px;
+    max-width: 768px;
+}
+.title {
+    text-align: center;
+    position: relative;
+    top: 7px;
+    color: blue;
+    width: 100px;
+    left: 50%;
+    transform: translate(-50%);
+}
+a:visited {
+    color: blue;
+}
+.prof {
+    border-radius: 50%;
+    margin-right: 10px;
+    float: right;
+    position: relative;
+    bottom: 5px;
+    background-color: white;
+}
+.avatar {
+    border-radius: 50%;
+    height: 40px;
+    width: 40px;
+}
+.question {
+    width: 40px;
+    height: 40px;
+}
+.help {
+    float: left;
+    position: relative;
+    width: 40px;
+    height: 40px;
+    left: 10px;
+    top: -35px;
+}
+.profile {
+    float: left;
+    margin: 10px;
+    position: relative;
+    border-radius: 50%;
+}
+.poster {
+    position: relative;
+    max-width: 748px;
+    height: 130px;
+    top: 20px;
+}
+.post-input {
+    position: absolute;
+    line-height: 1.3em;
+    top: 5px;
+    left: 10px;
+    right: 10px;
+    bottom: 5px;
+    padding: 7px;
+    border: 5px solid #e9e4ee;
+    border-radius: 5px;
+    background-color: #212529;
+    border-color: #fff;
+    height: 80px;
+    color: white;
+    font-family: 'Press Start 2P';
+    width: 100%;
+}
+.post-btn {
+    position: absolute;
+    right: -7px;
+    top: 92px;
+    float: right;
+    width: 70px;
+    height: 25px;
+    font-family: 'Press Start 2P';
+}
+.file-upload label {
+    display: block;
+    position: absolute;
+    width: 100px;
+    height: 25px;
+    float: left;
+    top: 92px;
+    left: 10px;
+    color: black;
+    font-family: 'Press Start 2P';
+    letter-spacing: 1.5px;
+    background: #efefef;
+    border-radius: 2px;
+    padding: 6px;
+    cursor: pointer;
+    transition: transform .2s ease-out;
+    text-align: center;
+}
+.file-upload label:hover {
+    opacity: 0.6;
+}
+.file-input {
+    opacity: 0;
+}
+.file-name {
+    font-size: 13px;
+    color: white;
+    position: absolute;
+    float: left;
+    top: 92px;
+    left: 115px;
+    margin-top: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+p {
+    letter-spacing: 1.5px;
+    line-height: 1.6;
+    color: white;
+}
+.loading {
+    width: 230px;
+    height: 30px;
+}
+.retropost {
+    position: relative;
+    margin: 10px;
+    border: 5px solid #e9e4ee;
+    border-radius: 5px;
+    min-height: 210px;
+    overflow: hidden;
+}
+.imgfile {
+    max-width: 100%;
+    height: auto;
+    margin-top: 10px;
+}
+.posts {
+    width: 100%;
+    margin: auto;
+    color: #fff;
+    white-space: pre-line;
+}
+.selection {
+    margin: 20px 10px 20px 10px;
+}
+.filter-sort {
+    width: 100%;
+    padding: 8px;
+    background-color: #212529;
+    color: #fff;
+    font-family: 'Press Start 2P';
+    border: 5px solid #e9e4ee;
+    border-radius: 5px;
+}
+.item {
+    /* position: relative; */
+    margin-top: 20px;
+    min-height: 105px;
+    overflow: hidden;
+}
+.shua {
+    width: 40px;
+    height: 40px;
+    background: url('../assets/images/shua.png');
+}
+.like-heart {
+    left: 10px;
+    bottom: 15px;
+    position: absolute;
+    /* position: relative; */
+}
+.is-empty {
+    cursor: pointer;
+}
+.boost-star {
+    position: absolute;
+    left: 75px;
+    bottom: 15px;
+}
+.numLikes {
+    position: absolute;
+    left: 44px;
+    bottom: 7px;
+}
+.boostValue {
+    position: absolute;
+    left: 127px;
+    bottom: 7px;
+}
+.share {
+    position: absolute; 
+    bottom: 35px;
+    float: right;
+    right: 5px;
+    height: 25px;
+    font-family: 'Press Start 2P';
+    cursor: pointer;
+}
+.txid {
+    position: absolute;
+    float: right;
+    bottom: 10px;
+    right: 5px;
+}
+.tip-section {
+    position: relative;
+    display: none;
+}
+.tip-input {
+    height: 30px;
+    font-size: 13px;
+    font-family: 'Press Start 2P';
+    width: 175px;
+}
+.tip-btns {
+    display: none;
+    margin-top: 10px;
+}
+.tip-btn {
+    font-family: 'Press Start 2P';
+    background-color: green;
+    cursor: pointer;
+    height: 25px;
+}
+.tip-btn:hover {
+    opacity: 0.7;
+}
+.video-container {
+	position:relative;
+	padding-bottom:56.25%;
+	padding-top:30px;
+	height:0;
+	overflow:hidden;
+}
+.video-container iframe, .video-container object, .video-container embed {
+	position:absolute;
+	top:0;
+	left:0;
+	width:100%;
+	height:100%;
+}
+.youtube-player {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    max-width: 100%;
+    background: #000;
+    margin: 5px;
+}
+.youtube-player iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    background: transparent;
+}
+.youtube-player img {
+    object-fit: cover;
+    display: block;
+    left: 0;
+    bottom: 0;
+    margin: auto;
+    max-width: 100%;
+    width: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
+    border: none;
+    height: auto;
+    cursor: pointer;
+    -webkit-transition: 0.4s all;
+    -moz-transition: 0.4s all;
+    transition: 0.4s all;
+}
+.youtube-player img:hover {
+    -webkit-filter: brightness(75%);
+}
+.youtube-player .play {
+    height: 72px;
+    width: 72px;
+    left: 50%;
+    top: 50%;
+    margin-left: -36px;
+    margin-top: -36px;
+    position: absolute;
+    background: url('../assets/images/videoplay.png') no-repeat;
+    cursor: pointer;
+}
+.postContent {
+    position: relative;
+    margin: 5px;
+    top: 40px;
+    left: -55px;
+    padding: 10px;
+    padding-bottom: 0;
+    height: auto;
+}
+.urlFormat {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.userLink {
+    left: 4px;
+    top: 24px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+}
+.timeago {
+    font-size: 8px;
+    position: absolute;
+    float: right;
+    right: 13px;
+    top: 12px;
+    margin: auto;
+}
+.coin {
+    position: absolute; 
+    right: 5px;
+    top: 27px;
+    cursor: pointer;
+}
+.config {
+    top: -15px;
+    left: 10px;
+    margin: 2px;
+    position: absolute;
+}
+.top {
+    width: 100%;
+    margin: auto;
+    position: relative;
+    margin-bottom: 20px;
+}
+.unfurl {
+    margin-top: 10px;
+}
+var {
+    font-style: normal;
+    font-size: 10px;
+}
+@media only screen and (max-width: 760px) {
+    .poster {
+        width: 100%;
+    }
+    .post-input {
+        width: auto;
+    }
+    .post-btn {
+        right: 10px;
+    }
+}
+@media only screen and (max-width: 500px) {
+    .file-name {
+        width: 165px;
+    }
+}

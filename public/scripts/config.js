@@ -1,0 +1,13 @@
+const B_PROTOCOL_ADDRESS = '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut';
+const MAP_PROTOCOL_ADDRESS = '1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5';
+const AIP_PROTOCOL_ADDRESS = '15PciHG22SNLQJXMoSUaWVi7WSqc7hCfva';
+const BAP_PROTOCOL_ADDRESS = '1BAPSuaPnfGnSBM3GLV9yhxUdYe4vGbdMT';
+const BPP_PROTOCOL_ADDRESS = 'BPP';
+const APP = 'retrofeed.me';
+const bSocial = new BSocial(APP);
+const chatApp = new BSocial(APP);
+const BLOCKPOST_TEST_KEY = 'L38eozoVv8J5BtsKaHvFPaF8zS3w1jaxJKk619peW9bY2a5XoT9P';
+const PURSE_KEY = 'L2ASAwmxR72tbBTTrtR87sjpXeRiAgTkrxa1G8GJuCBKGRGwgiQx';
+const urlRegex = /(https?:\/\/[^\s]+)/g;
+const youRegex = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/;
+const TEST_PUBLIC_ENCRYPTION_KEY = '023c302b01e42c6f6e7cd8811c3a7065b0c2579845b14f272c3517eac95b5d658b';

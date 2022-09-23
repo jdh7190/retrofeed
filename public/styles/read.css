@@ -1,0 +1,94 @@
+img {
+    max-width: 100%;
+    height: auto;
+}
+body {
+    margin: 10px auto;
+    min-width: 320px;
+    max-width: 760px;
+    line-height: 1.6em;
+    font-size: 15px;
+    font-family: 'VT323', monospace;
+    padding: 10px;
+    background-color: #212529;
+    color: #e9e4ee;
+}
+h1 {
+    line-height: 1.25em;
+    padding: 0;
+}
+h3 {
+    text-align: center;
+}
+.header {
+    line-height: 1.48em;
+    text-align: start;
+}
+.header-bar {
+    height: 15px;
+}
+.top {
+    margin-top: 10px;
+}
+.byline {
+    text-align: center;
+    font-size: 16px;
+    font-style: italic;
+}
+p {
+    border-radius: 5px;
+}
+.domain {
+    font-size: 0.9em;
+    line-height: 1.48em;
+    padding-bottom: 4px;
+    text-decoration: none;
+    border-bottom: 1px solid;
+}
+.center {
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+.centered {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.share {
+    position: relative;
+    cursor: pointer;
+    float: right;
+    top: -10px;
+    right: 0px;
+}
+.back {
+    position: relative;
+    cursor: pointer;
+    float: left;
+    top: -12px;
+    left: 0px;
+}
+.video-container {
+	position: relative;
+	padding-bottom: 56.25%;
+	padding-top: 30px;
+	height: 0;
+	overflow: hidden;
+}
+.video-container iframe, .video-container object, .video-container embed {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 95%;
+	height: 95%;
+}
+@media only screen and (max-width: 780px) {
+    body {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+}

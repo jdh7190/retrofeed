@@ -1,0 +1,82 @@
+body {
+    background-color:#c0c0cc;
+}
+a {
+    color: #4b2980;
+}
+.nes-dialog {
+    background-color: #c0c0cc;
+}
+.nes-btn.confirm{
+    background-color: #4b2980;
+}
+.nes-btn.confirm:hover{
+    background-color: #8674a4
+}
+.nes-btn.cancel{
+    background-color:#9c9ad4;
+}
+.nes-btn.cancel:hover{
+    background-color: #c3c0e8;
+}
+.nes-container.is-rounded.with-title{
+    background-color:#9c9ad4;
+    color: #000;
+}
+.nes-select{
+    width: 100%;
+    margin: auto;
+}
+.selection{
+    padding: 1rem 1rem 1rem 1rem;width:calc(100%);
+}
+.nes-select.is-dark::after{
+    color: #000;
+}
+.video-container {
+	position:relative;
+	padding-bottom:56.25%;
+	padding-top:30px;
+	height:0;
+	overflow:hidden;
+}
+.video-container iframe, .video-container object, .video-container embed {
+	position:absolute;
+	top:0;
+	left:0;
+	width:100%;
+	height:100%;
+}
+#post-container{
+    width: 100%;
+    margin: auto;
+    color: #fff;
+    background-color: #9192a6;
+}
+#message-container {
+    width: 100%;
+    margin: auto;
+    color: #fff;
+    background-color: #9192a6;
+}
+#order {
+    background-color: #4b2980;
+    color: #000;
+    border-image-source: none;
+}
+#post {
+    background-color: #9c99d3;
+    color: #000;
+}
+#tPost{
+    background-color: #4b2980;
+}
+#postTitle{
+    background-color: #9c99d3;
+}
+@media only screen and (min-width: 768px){
+    .selection{width: 100%}
+    .nes-select{width: 72%}
+    #post-container{width: 70%}
+    #message-container{width: 70%}
+}

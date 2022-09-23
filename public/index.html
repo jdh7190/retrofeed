@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+    <title>retrofeed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="retrofeed"/>
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://retrofeed.me">
+    <meta property="og:image:url" content="https://retrofeed.me/assets/images/icon-512x512.png">
+    <meta property="og:description" content="Old School Gaming Social Client">
+    <meta name="description" content="Old School Gaming Social Client">
+    <meta name="theme-color" content="#212529">
+    <meta name="apple-mobile-web-app-title" content="retrofeed">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta charset="utf-8">
+    <link href="styles/orig.css" rel="stylesheet" type="text/css">
+    <link href="styles/icons.css" rel="stylesheet" type="text/css">
+    <link href="styles/modal.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="./styles/pwa.min.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap">
+    <link rel="apple-touch-icon" href="/assets/images/icon-192x192.png">
+    <script src="./scripts/bsv.browser.min.js"></script>
+    <script src="./scripts/bsv-ecies.min.js"></script>
+    <script src="./scripts/helpers.js"></script>
+    <script src="./scripts/api.js"></script>
+    <script src="./scripts/run.browser.min.js"></script>
+    <script src="./scripts/message.js"></script>
+    <script src="./scripts/bSocial.js"></script>
+    <script src="./scripts/post.js"></script>
+    <script src="./scripts/like.js"></script>
+    <script src="./scripts/config.js"></script>
+   </head>
+   <body>
+    <div class="page">
+        <a href="/profile" class="prof"><img id="prof" class="avatar"></a>
+        <h4 class="title center">retrofeed</h4>
+        <a href="/info" class="help"><img class="question" src="assets/images/question_block_32.png" alt="question"></a>
+        <div class="poster">
+            <div class="file-upload">
+                <input type="file" class="file-input" accept="image/*" id="fileInput">
+                <label for="fileInput">Upload</label><span id="filename" class="file-name"></span>
+            </div>
+            <textarea type="text" id="post" class="post-input" placeholder="It's dangerous to leave this empty! Type in this!" autofocus></textarea>
+            <button id="tPost" class="post-btn" onclick="bPost()">Post</button>
+        </div>
+        <div class="selection">
+            <select required id="order" class="filter-sort">
+                <option value="0">Most recent</option>
+                <option value="1">Likes</option>
+                <option value="2">PoW</option>
+                <option value="3">News</option>
+            </select>
+        </div>
+        <div id="message-container" class="posts"></div>
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+              <span class="close">&times;</span>
+              <p class="modal-text" id="modalTxt"></p>
+              <div class="tip-section" id="tipSection">
+                <span>
+                    $<input type="number" class="tip-input" min="0" value="0.01" id="tipAmt" step=0.01>
+                    <button class="tip-btn" id="tipConfirm">Tip</button>
+                </span>
+              </div>
+            </div>
+        </div>
+    </div>
+    <script src="./scripts/retro.js"></script>
+    <script src="./scripts/html.js"></script>
+    <script>
+        if (localStorage?.icon) { prof.src = localStorage.icon } else { prof.src = `./assets/images/profile.svg` }
+        const coinSound = new Audio();
+        coinSound.src = '/assets/sounds/nes_coin.wav';
+        const heartSound = new Audio();
+        heartSound.src = '/assets/sounds/heartpiece.wav';
+        var loadingPost = false, selOrder = 0, loadingLike = false, loadingText = '';
+        getRetroPosts(localStorage?.orderBy !== undefined ? localStorage.orderBy : 0)
+        document.getElementById("order").onchange = () => {
+            selOrder = document.getElementById("order").value;
+            localStorage.orderBy = selOrder;
+            console.log({selOrder})
+        }
+        if (localStorage.orderBy) {
+            selOrder = localStorage.orderBy;
+            document.getElementById("order").options[selOrder].selected = true;
+        }
+        tPost.setAttribute("disabled", null);
+        document.getElementById("post").addEventListener("keyup", () => {checkPost()})
+        const checkPost = () => {
+            let input = document.getElementById("post").value;
+            if (input != "") {
+                tPost.removeAttribute("disabled");
+            } else {
+                tPost.setAttribute("disabled", null);
+            }
+        }
+        const fileInput = document.getElementById('fileInput');
+        fileInput.addEventListener('change', async e => {
+            const fileList = event.target.files;
+            if (fileList.length) {
+                const file = fileList[0];
+                console.log(file)
+                document.getElementById('filename').innerText = `${file.name}`;
+                const p = await bsvPrice(true);
+                const centSats = parseFloat((Math.ceil(1000000 / p.rate)).toFixed(8));
+                const pennyCost = parseInt((file.size*0.05) / centSats);
+                if (pennyCost > 1) {
+                    const m = document.getElementById('myModal');
+                    m.style.display = 'block';
+                    modalText.innerText = `Uploading this file will cost an estimated additional ${pennyCost} cents!`;
+                }
+            }
+        })
+        const login = () => location.href = '/profile';
+        function shareBPost() { 
+            if (navigator?.share) {
+                navigator.share({
+                    title: 'retrofeed',
+                    url: `https://retrofeed.me/tx/${this.getAttribute("id")}`
+                }).then(() => console.log('Successful share')).catch(error => console.log('Error sharing', error))
+            }
+            else {
+                const copyTx = document.createElement('textarea');
+                document.body.appendChild(copyTx);
+                copyTx.value = 'https://retrofeed.me/tx/' + this.getAttribute("name");
+                copyTx.select();document.execCommand("copy");
+                document.body.removeChild(copyTx);
+                alert(`Copied URL to clipboard!`);
+            }
+        }
+        async function boost() {
+            console.log('Boosting...')
+        }
+        function tip() {
+            const handle = this.dataset.handle;
+            const txid = this.dataset.txid;
+            const m = document.getElementById('myModal');
+            m.style.display = 'block';
+            modalText.innerText = `How much would you like to tip $${handle}?`;
+            document.getElementById('tipSection').style.display = 'block';
+            document.getElementById('tipConfirm').onclick = async() => {
+                const amt = document.getElementById('tipAmt').value;
+                if (amt <= 0) {
+                    alert(`Cannot tip zero or less!`);
+                    return;
+                }
+                loadingDlg('Tipping');
+                const payload = { tippedHandle: handle, amount: amt, txid, handle: localStorage.paymail.split('@')[0] };
+                const p = await hcPost(null, 'tip', payload);
+                loadingDlg();
+                coinSound.play();
+            }
+        }
+        async function like() {
+            if (!localStorage.hcauth) { 
+                location.href = '/profile';
+                return;
+            }
+            const likedTxid = this.id;
+            const heart = document.getElementById(likedTxid);
+            loadingLike = true;
+            setInterval(() => {
+                if (loadingLike) {
+                    if (heart.className.includes('is-empty')) { heart.className = 'like-heart nes-icon heart is-medium is-half' }
+                    else if (heart.className.includes('half')) { heart.className = 'like-heart nes-icon heart is-medium' }
+                    else { heart.className = 'like-heart nes-icon heart is-medium is-empty' }
+                }
+                else { return }
+            }, 400);
+            const likeCount = parseInt(document.getElementById(`${likedTxid}_count`).innerText);
+            const emoji = '👍';
+            const l = bSocial.like(likedTxid, emoji);
+            const arrops = l.getOps('utf8');
+            let hexarrops = ['6a'];
+            arrops.forEach(o => { hexarrops.push(str2Hex(o)) })
+            hexarrops.push('7c');
+            const b2sign = hexArrayToBSVBuf(hexarrops);
+            const run = new Run({
+                owner: localStorage.ownerKey,
+                purse: 'L2ASAwmxR72tbBTTrtR87sjpXeRiAgTkrxa1G8GJuCBKGRGwgiQx'
+            });
+            const signature = bsvMessage.sign(b2sign.toString(), run.owner.bsvPrivateKey);
+            const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', run.owner.address, signature]);
+            let hexarr = [];
+            payload.forEach(p => { hexarr.push(str2Hex(p)) })
+            const likePayload = { emoji, likedTxid, likedHandle: heart.data }
+            const p = await hcPost(hexarr, 'like', likePayload);
+            console.log({p})
+            loadingLike = false;
+            heartSound.play();
+            document.getElementById(likedTxid).className = `like-heart nes-icon heart is-medium`;
+            document.getElementById(`${likedTxid}_count`).innerText = likeCount + 1;
+        }
+        const bPost = async text => {
+            if (!localStorage.hcauth) { 
+                location.href = '/profile';
+                return;
+            }
+            let post = document.getElementById("post").value + ` $osg`;
+            loadingDlg('Posting');
+            document.getElementById("post").value = "";
+            const p = bSocial.post();
+            p.addText(post);
+            const file = document.querySelector('input[type="file"]')?.files[0];
+            const postPayload = { text: post }
+            if (file) {
+                const fileData = await getBase64File(file);
+                p.addImage(fileData);
+                postPayload.image = fileData;
+            }
+            const arrops = p.getOps('utf8');
+            const buf = arrToBuf(arrops);
+            let hexarrops = [];
+            arrops.forEach(o => { hexarrops.push(str2Hex(o)) })
+            const b2sign = arrToBuf(hexarrops);
+            try {
+                const run = new Run({ owner: localStorage.ownerKey, purse: PURSE_KEY });
+                const signature = bsvMessage.sign(b2sign.toString(), run.owner.bsvPrivateKey);
+                const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', run.owner.address, signature]);
+                let hexarr = [];
+                payload.forEach(p => { hexarr.push(str2Hex(p)) })
+                const p = await hcPost(hexarr, 'post', postPayload);
+                console.log({p});
+                if (p.transactionId) {
+                    const tempPost = {
+                        content: post,
+                        createdDateTime: Date.now(),
+                        handle: localStorage.paymail.split('@')[0],
+                        icon: localStorage.icon,
+                        txid: p.transactionId,
+                        likeCount: 0,
+                        username: localStorage?.username || ''
+                    }
+                    createRetroPost(tempPost, true)
+                    loadingDlg();
+                } else { throw p.error }
+            } catch(e) {
+                console.log(e);
+                alert(e);
+            }
+        }
+        const chat = async(msg, encrypt, channel) => {
+            const p = bSocial.post();
+            if (encrypt) {
+                const encKey = decryptData(localStorage.encryptedKey, localStorage.ownerKey);
+                msg = eciesEncrypt(msg, encKey);
+                channel = 'osg_enc';
+            }
+            p.addText(msg);
+            p.addMapData('paymail', localStorage.paymail);
+            if (channel) {
+                p.addMapData('context', 'channel');
+                p.addMapData('channel', channel)
+            }
+            const arrops = p.getOps('utf8');
+            let hexarr = [];
+            arrops.forEach(a => { hexarr.push(str2Hex(a)) })
+            const r = await hcPost(hexarr, 'chat');
+            console.log({r});
+        }
+    </script>
+    <script>window.twttr = (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0],
+        t = window.twttr || {};
+        if (d.getElementById(id)) return t;
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "https://platform.twitter.com/widgets.js";
+        fjs.parentNode.insertBefore(js, fjs);
+        t._e = [];
+        t.ready = function(f) {
+        t._e.push(f);
+        };
+        return t;
+    }(document, "script", "twitter-wjs"));</script>
+    </body>
+</html>

@@ -1,0 +1,123 @@
+body {
+    background-color:#212529;
+    font-family: 'Press Start 2P'
+}
+.text {
+    letter-spacing: 1.5px;
+    line-height: 1.6;
+    color: white;
+    text-align: center;
+}
+p {
+    letter-spacing: 1.5px;
+    line-height: 1.6;
+    color: white;
+}
+.page {
+    margin: 0 auto;
+    font-size: 13px;
+    min-width: 320px;
+    max-width: 768px;
+}
+.header {
+    position: relative;
+    width: 100%;
+}
+.title {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: blue;
+}
+.prof {
+    border-radius: 50%;
+    margin-right: 10px;
+    float: right;
+    position: relative;
+    bottom: 5px;
+    background-color: white;
+}
+.avatar {
+    border-radius: 50%;
+    height: 40px;
+    width: 40px;
+}
+.centered {
+    position: fixed;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.inventory {
+    position: relative;
+    /* margin: 10px; */
+    border: 1px white solid;
+}
+.item {
+    position: relative;
+}
+.icon {
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    left: -30px;
+}
+.center {
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+.profile {
+    position: relative;
+    margin: 10px;
+    /* border: 1px solid white; */
+    top: 60px;
+}
+.btns {
+    width: 200px;
+}
+.btn-text {
+    right: -5px;
+    position: relative;
+}
+.btn {
+    font-family: 'Press Start 2P';
+    letter-spacing: 0.5px;
+    box-shadow: 0px 1px 3px hsla(0, 0%, 0%, .15);
+    cursor: pointer;
+}
+.handcash {
+    margin-top: 20px;
+    position: relative;
+    width: 160px;
+    height: 40px;
+    color: white;
+    background-image: linear-gradient(#38CB7C, #1CB462);
+}
+.btn:hover {
+    opacity: 0.7;
+}
+.logout {
+    color: black;
+    margin-top: 40px;
+    height: 25px;
+}
+.hcsvg {
+    position: absolute;
+    height: 14px;
+    width: 14px;
+    top: 11px;
+    left: 4px;
+}
+.back {
+    position: relative;
+    left: 10px;
+    float: left;
+    /* top: -10px; */
+    cursor: pointer;
+    height: 40px;
+    width: 40px;
+}
