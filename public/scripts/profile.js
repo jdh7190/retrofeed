@@ -47,7 +47,7 @@ getHcProfile();
 const hcLogin = () => {
     if (!localStorage.hcauth) {
         localStorage.clear();
-        location.href = location.href.includes('localhost') ? `https://app.handcash.io/#/authorizeApp?appId=62c4621d8af65d4fbfd52f80` : `https://app.handcash.io/#/authorizeApp?appId=5fd278ec7df6277a133d56f6`;
+        location.href = location.href.includes('localhost') ? `https://app.handcash.io/#/authorizeApp?appId=62c4621d8af65d4fbfd52f80` : `https://app.handcash.io/#/authorizeApp?appId=632dcca7fb8da441d62e31f9`;
     }
     else { location.href = '/' }
 }
