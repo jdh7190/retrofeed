@@ -217,9 +217,8 @@ app.get('/readability', async(req, res) => {
     try {
         if (!req.query.url) { res.send({ error: 'No URL specified.' }); return }
         const url = req.query.url;
-        console.log({url})
         let result = await sqlDB.getReadability(pool, req.query.url);
-        if (result?.length) {
+        if (result[0]?.readability) {
             res.send(`<meta name="viewport" content="width=device-width, initial-scale=1.0">${result[0].readability}`);
             return;
         }
