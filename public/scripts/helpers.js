@@ -178,3 +178,15 @@ const getBase64File = file => {
         }
     })
 }
+const loadingDlg = txt => {
+    loadingText = txt || '';
+    if (loadingPost) {
+        modalText.innerText = '';
+        modal.style.display = 'none';
+        loadingPost = false;
+    } else {
+        modalText.innerText = txt;
+        modal.style.display = 'block';
+        loadingPost = true;
+    }
+}

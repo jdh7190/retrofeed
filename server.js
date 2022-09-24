@@ -187,6 +187,21 @@ app.get('/getPosts', async(req, res) => {
         res.send({error:'Failed to fetch from database.'});
     }
 });
+app.get('/getPost', async(req, res) => {
+    console.log(req.query);
+    try {
+        const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, imgs FROM retro.posts
+            left outer join retro.likes on posts.txid = likes.likedTxid
+            join retro.users on users.handle = posts.handle
+        where posts.txid = '${req.query.txid}'
+        group by posts.id order by createdDateTime desc`;
+        const r = await sqlDB.sqlPromise(stmt, 'Failed to register user.', '', pool);
+        res.send(r);
+    } catch (e) {
+        console.log(e);
+        res.send({error:'Failed to fetch from database.'});
+    }
+});
 app.get('/myLikes', async(req, res) => {
     const { handle } = req.query;
     try {

@@ -22,11 +22,6 @@ const closeModal = () => {
     tipSection.style.display = 'none';
     modal.style.display = 'none';
 }
-addEventListener('DOMContentLoaded', () => {
-    const parsedUrl = new URL(location);
-    document.getElementById("post").value = parsedUrl.searchParams.get('text');
-    checkPost();
-});
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/serviceworker.js')
     .then(registration => {console.log('Registration successful, scope is:', registration.scope)})

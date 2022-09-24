@@ -1,4 +1,6 @@
 const messageContainer = document.getElementById('message-container');
+const bSocial = new BSocial(APP);
+const chatApp = new BSocial(APP);
 var myLikes = [];
 const dots = setInterval(() => {
     const wait = modalText;
@@ -7,19 +9,6 @@ const dots = setInterval(() => {
         else { wait.innerText += "." }
     }
 }, 300);
-const loadingDlg = txt => {
-    loadingText = txt || '';
-    tipSection.style.display = 'none';
-    if (loadingPost) {
-        modalText.innerText = '';
-        modal.style.display = 'none';
-        loadingPost = false;
-    } else {
-        modalText.innerText = txt;
-        modal.style.display = 'block';
-        loadingPost = true;
-    }
-}
 const manageContent = (content, con) => {
     content = content.replace('$osg', '')
     if (content.includes('twitter.com')) {
@@ -112,7 +101,7 @@ const createRetroPost = (post, recent) => {
     item.appendChild(numLikes);
     const star = document.createElement('i');
     star.className = 'nes-icon star is-medium is-empty boost-star';
-    star.onclick = boost;
+    //star.onclick = boost;
     //item.appendChild(star);
     const boostValue = document.createElement('var');
     boostValue.className = 'boostValue';

@@ -16,7 +16,7 @@ p {
 .page {
     margin: 0 auto;
     font-size: 13px;
-    min-width: 320px;
+    min-width: 360px;
     max-width: 768px;
 }
 .header {
@@ -51,11 +51,17 @@ p {
 }
 .inventory {
     position: relative;
-    /* margin: 10px; */
     border: 1px white solid;
+    display: none;
 }
 .item {
     position: relative;
+}
+.items {
+
+}
+.details {
+    
 }
 .icon {
     width: 24px;
@@ -102,7 +108,7 @@ p {
 }
 .logout {
     color: black;
-    margin-top: 40px;
+    margin-top: 20px;
     height: 25px;
 }
 .hcsvg {
@@ -120,4 +126,8 @@ p {
     cursor: pointer;
     height: 40px;
     width: 40px;
+}
+.details {
+    margin-top: 20px;
+    font-size: 8px;
 }

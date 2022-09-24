@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+    <title>retrofeed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="retrofeed"/>
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://retrofeed.me">
+    <meta property="og:image:url" content="https://retrofeed.me/assets/images/icon-512x512.png">
+    <meta property="og:description" content="Retro Themed Open Social Client on Bitcoin">
+    <meta name="description" content="Retro Themed Open Social Client on Bitcoin">
+    <meta name="theme-color" content="#212529">
+    <meta name="apple-mobile-web-app-title" content="retrofeed">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta charset="utf-8">
+    <link href="../styles/orig.css" rel="stylesheet" type="text/css">
+    <link href="../styles/icons.css" rel="stylesheet" type="text/css">
+    <link href="../styles/modal.css" rel="stylesheet" type="text/css">
+    <link href="../styles/tx.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="../styles/pwa.min.css">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap">
+    <link rel="apple-touch-icon" href="/assets/images/icon-192x192.png">
+    <script src="../scripts/bsv.browser.min.js"></script>
+    <script src="../scripts/bsv-ecies.min.js"></script>
+    <script src="../scripts/helpers.js"></script>
+    <script src="../scripts/api.js"></script>
+    <script src="../scripts/bSocial.js"></script>
+    <script src="../scripts/post.js"></script>
+    <script src="../scripts/like.js"></script>
+    <script src="../scripts/config.js"></script>
+   </head>
+   <body>
+    <div class="page">
+        <a href="/profile" class="prof" name="profile"><img id="prof" class="avatar" alt="avatar"></a>
+        <h4 class="title center">retrofeed</h4>
+        <a href="/info" class="help"><img class="question" src="../assets/images/question_block_32.png" alt="question"></a>
+        <div id="message-container" class="posts"></div>
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+              <span class="close">&times;</span>
+              <p class="modal-text" id="modalTxt"></p>
+              <div class="tip-section" id="tipSection">
+                <span>
+                    $<input type="number" class="tip-input" min="0" value="0.01" id="tipAmt" step=0.01>
+                    <button class="tip-btn" id="tipConfirm">Tip</button>
+                </span>
+              </div>
+            </div>
+        </div>
+    </div>
+    <script src="../scripts/retro.js"></script>
+    <script src="../scripts/html.js"></script>
+    <script src="../scripts/interactions.js"></script>
+   </body>
+   <script>
+        if (localStorage?.icon) { prof.src = localStorage.icon } else { prof.src = `./assets/images/profile.svg` }
+        const params = new URLSearchParams(location.search);
+        const txid = params.get('txid');
+        const coinSound = new Audio();
+        coinSound.src = '/assets/sounds/nes_coin.wav';
+        const heartSound = new Audio();
+        heartSound.src = '/assets/sounds/heartpiece.wav';
+        var loadingPost = false, selOrder = 0, loadingLike = false, loadingText = '';
+        const getPost = async() => {
+            const r = await fetch(`/getPost?txid=${txid}`);
+            const res = await r.json();
+            const post = res[0];
+            createRetroPost(post, true)
+        }
+        getPost();
+   </script>
+</html>
