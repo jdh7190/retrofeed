@@ -4,11 +4,11 @@ const modalTxt = document.getElementById('modalTxt');
 const inventory = document.getElementById('inventory');
 if (localStorage?.icon) {
     login.style.display = 'none';
-    //inventory.style.display = 'block';
+    inventory.style.display = 'block';
     prof.src = localStorage.icon;
 } else {
     login.style.display = 'block';
-    //inventory.style.display = 'none';
+    inventory.style.display = 'none';
     prof.src = '../assets/images/profile.svg';
 }
 const getHcProfile = async() => {
@@ -51,3 +51,16 @@ const hcLogin = () => {
     }
     else { location.href = '/' }
 }
+const createItem = item => {
+    const p = document.createElement('p');
+    const span = document.createElement('span');
+    span.className = 'item text';
+    span.innerText = item.text;
+    p.appendChild(span);
+    inventory.appendChild(p);
+}
+const inventoryManager = async() => {
+    const noItems = { text: 'No items.' };
+    createItem(noItems);
+}
+inventoryManager();

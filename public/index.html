@@ -7,8 +7,8 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://retrofeed.me">
     <meta property="og:image:url" content="https://retrofeed.me/assets/images/icon-512x512.png">
-    <meta property="og:description" content="Old School Gaming Social Client">
-    <meta name="description" content="Old School Gaming Social Client">
+    <meta property="og:description" content="Retro Themed Open Social Client on Bitcoin">
+    <meta name="description" content="Retro Themed Open Social Client on Bitcoin">
     <meta name="theme-color" content="#212529">
     <meta name="apple-mobile-web-app-title" content="retrofeed">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -89,8 +89,8 @@
         tPost.setAttribute("disabled", null);
         document.getElementById("post").addEventListener("keyup", () => {checkPost()})
         const checkPost = () => {
-            let input = document.getElementById("post").value;
-            if (input != "") {
+            const input = document.getElementById("post").value;
+            if (input !== "") {
                 tPost.removeAttribute("disabled");
             } else {
                 tPost.setAttribute("disabled", null);
@@ -139,7 +139,7 @@
             const m = document.getElementById('myModal');
             m.style.display = 'block';
             modalText.innerText = `How much would you like to tip $${handle}?`;
-            document.getElementById('tipSection').style.display = 'block';
+            tipSection.style.display = 'block';
             document.getElementById('tipConfirm').onclick = async() => {
                 const amt = document.getElementById('tipAmt').value;
                 if (amt <= 0) {
@@ -195,47 +195,48 @@
                 location.href = '/profile';
                 return;
             }
-            let post = document.getElementById("post").value + ` $osg`;
+            const post = document.getElementById("post").value + ` $osg`;
             loadingDlg('Posting');
             document.getElementById("post").value = "";
-            const p = bSocial.post();
-            p.addText(post);
-            const file = document.querySelector('input[type="file"]')?.files[0];
-            const postPayload = { text: post }
-            if (file) {
-                const fileData = await getBase64File(file);
-                p.addImage(fileData);
-                postPayload.image = fileData;
-            }
-            const arrops = p.getOps('utf8');
-            const buf = arrToBuf(arrops);
-            let hexarrops = [];
-            arrops.forEach(o => { hexarrops.push(str2Hex(o)) })
-            const b2sign = arrToBuf(hexarrops);
             try {
+                const p = bSocial.post();
+                p.addText(post);
+                const file = document.querySelector('input[type="file"]')?.files[0];
+                const postPayload = { text: post }
+                if (file) {
+                    const fileData = await getBase64File(file);
+                    p.addImage(fileData);
+                    postPayload.image = fileData;
+                }
+                const arrops = p.getOps('utf8');
+                const buf = arrToBuf(arrops);
+                let hexarrops = [];
+                arrops.forEach(o => { hexarrops.push(str2Hex(o)) })
+                const b2sign = arrToBuf(hexarrops);      
                 const bsvPrivateKey = bsv.PrivateKey.fromWIF(localStorage.ownerKey);
                 const signature = bsvMessage.sign(b2sign.toString(), bsvPrivateKey);
                 const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', localStorage.ownerAddress, signature]);
                 let hexarr = [];
                 payload.forEach(p => { hexarr.push(str2Hex(p)) })
-                const p = await hcPost(hexarr, 'post', postPayload);
-                console.log({p});
-                if (p.transactionId) {
+                const res = await hcPost(hexarr, 'post', postPayload);
+                console.log({res});
+                if (res?.paymentResult?.transactionId) {
                     const tempPost = {
                         content: post,
                         createdDateTime: Date.now(),
                         handle: localStorage.paymail.split('@')[0],
                         icon: localStorage.icon,
-                        txid: p.transactionId,
+                        txid: res.paymentResult.transactionId,
                         likeCount: 0,
                         username: localStorage?.username || ''
                     }
                     createRetroPost(tempPost, true)
                     loadingDlg();
-                } else { throw p.error }
+                } else { throw res }
             } catch(e) {
+                loadingDlg();
                 console.log(e);
-                alert(e);
+                showModal(e?.error?.message || e.error);
             }
         }
         const chat = async(msg, encrypt, channel) => {

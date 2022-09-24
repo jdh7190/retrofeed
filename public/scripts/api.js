@@ -10,7 +10,7 @@ const hcPost = async(payload, action, content) => {
         })
     });
     const res = await r.json();
-    return res.paymentResult;
+    return res;
 }
 const getPosts = async order => {
     const res = await (await fetch(`/getPosts/?sort=${order}`)).json();

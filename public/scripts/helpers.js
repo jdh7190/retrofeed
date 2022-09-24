@@ -55,10 +55,8 @@ const hexArrayToBSVBuf = arr => {
     const hexBuf = arrToBuf(arr);
     const decoded = new TextDecoder().decode(hexBuf);
     const str2sign = hex2Str(decoded);
-    console.log(str2sign)
     const abuf = strToArrayBuffer(str2sign);
     const bsvBuf = dataToBuf(abuf);
-    console.log({bsvBuf}, bsvBuf.toString())
     return bsvBuf;
 }
 const digestMessage = async message => {

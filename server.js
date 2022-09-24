@@ -3,21 +3,20 @@ const express = require('express');
 const sqlDB = require('./sqlDB');
 const cheerio = require('cheerio');
 const fetch = require('node-fetch');
-const ECIES = require('electrum-ecies');
 const { Readability } = require('@mozilla/readability');
 const { HandCashConnect } = require('@handcash/handcash-connect');
 const handCashConnect = new HandCashConnect({appId: process.env.APP_ID, appSecret: process.env.APP_SECRET});
 const JSDOM = require('jsdom').JSDOM;
 const app = express(), port = process.env.SERVER_PORT;
 app.use(express.static('public'));
-app.use(express.json({type: ['application/json', 'text/plain']}));
-app.use(express.urlencoded({extended:true}));
+app.use(express.json({type: ['application/json', 'text/plain'],limit:'50mb'}));
+app.use(express.urlencoded({extended:true, limit:'50mb'}));
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header("Access-Control-Allow-Headers", "Origin, Content-Type");
     next();
 });
-app.use(express.json());
+app.use(express.text({limit:'50mb'}))
 var pool = sqlDB.pool(true);
 app.get('/', (req, res) => {res.sendFile('index.html', { root: __dirname })});
 app.get('/getBoosts', async(req, res) => {
@@ -165,11 +164,14 @@ app.post('/hcPost', async(req, res) => {
         res.send({ paymentResult });
     }
     catch (error) { 
-        console.log({error})
+        console.log('HERE?',{error})
         if (error?.response) {
             console.log(error.response.data)
         }
-        res.send({ error });
+        if (error.httpStatusCode === 413) {
+            error.message = 'File upload image too large.';
+        }
+        res.send({error});
     }
 })
 app.get('/getPosts', async(req, res) => {

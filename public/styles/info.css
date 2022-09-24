@@ -32,6 +32,7 @@ a {
 p {
     text-align: center;
     line-height: 1.6;
+    letter-spacing: 1.5px;
 }
 .info {
     position: relative;

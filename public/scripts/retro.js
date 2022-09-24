@@ -9,7 +9,7 @@ const dots = setInterval(() => {
 }, 300);
 const loadingDlg = txt => {
     loadingText = txt || '';
-    document.getElementById('tipSection').style.display = 'none';
+    tipSection.style.display = 'none';
     if (loadingPost) {
         modalText.innerText = '';
         modal.style.display = 'none';
