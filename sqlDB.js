@@ -109,11 +109,11 @@ const setUserSub = (pool, user) => {
     }
 }
 const getReadability = (pool, url) => {
-    let q = `SELECT readability FROM retro.twetches where content like '%${url}%'`;
+    let q = `SELECT readability FROM retro.posts where content like '%${url}%'`;
     try {
         return new Promise((resolve, reject) => {
             pool.query(q, function (err, r) {
-                if (err) {console.log(err); reject(new Error("Error querying Twetch for txid: ${txid}."));}
+                if (err) {console.log(err); reject(new Error("Error querying Post for txid: ${txid}."));}
                 if (r !== undefined) { resolve(r) }
                 else {reject(new Error(`No Twetch found for txid: ${txid}`))}
             });
