@@ -21,13 +21,13 @@ body {
     text-align: center;
     position: relative;
     top: 7px;
-    color: blue;
+    color: #0000EE;
     width: 100px;
     left: 50%;
     transform: translate(-50%);
 }
 a:visited {
-    color: blue;
+    color: #0000EE;
 }
 .prof {
     border-radius: 50%;
@@ -133,6 +133,12 @@ p {
     letter-spacing: 1.5px;
     line-height: 1.6;
     color: white;
+}
+.info {
+    position: relative;
+    margin: 20px;
+    top: 10px;
+    text-align: center;
 }
 .loading {
     width: 230px;

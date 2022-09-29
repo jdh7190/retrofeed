@@ -17,15 +17,14 @@
     <link href="styles/orig.css" rel="stylesheet" type="text/css">
     <link href="styles/icons.css" rel="stylesheet" type="text/css">
     <link href="styles/modal.css" rel="stylesheet" type="text/css">
+    <link href="styles/nav.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="./styles/pwa.min.css">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap">
     <link rel="apple-touch-icon" href="/assets/images/icon-192x192.png">
     <script src="./scripts/bsv.browser.min.js"></script>
-    <script src="./scripts/bsv-ecies.min.js"></script>
     <script src="./scripts/helpers.js"></script>
     <script src="./scripts/api.js"></script>
-    <!-- <script src="./scripts/run.browser.min.js"></script> -->
     <script src="./scripts/message.js"></script>
     <script src="./scripts/bSocial.js"></script>
     <script src="./scripts/post.js"></script>
@@ -37,23 +36,46 @@
         <a href="/profile" class="prof" name="profile"><img id="prof" class="avatar" alt="avatar"></a>
         <h4 class="title center">retrofeed</h4>
         <a href="/info" class="help"><img class="question" src="assets/images/question_block_32.png" alt="question"></a>
-        <div class="poster">
-            <div class="file-upload">
-                <input type="file" class="file-input" accept="image/*" id="fileInput">
-                <label for="fileInput">Upload</label><span id="filename" class="file-name"></span>
+        <div id="page-1">
+            <div class="poster">
+                <div class="file-upload">
+                    <input type="file" class="file-input" accept="image/*" id="fileInput">
+                    <label for="fileInput">Upload</label><span id="filename" class="file-name"></span>
+                </div>
+                <textarea type="text" id="post" class="post-input" placeholder="It's dangerous to leave this empty! Type in this!" autofocus></textarea>
+                <button id="tPost" class="post-btn" onclick="bPost()">Post</button>
             </div>
-            <textarea type="text" id="post" class="post-input" placeholder="It's dangerous to leave this empty! Type in this!" autofocus></textarea>
-            <button id="tPost" class="post-btn" onclick="bPost()">Post</button>
+            <div class="selection">
+                <select required id="order" class="filter-sort">
+                    <option value="0">Most recent</option>
+                    <option value="1">Likes</option>
+                    <!-- <option value="2">PoW</option>
+                    <option value="3">News</option> -->
+                </select>
+            </div>
+            <div id="message-container" class="posts"></div>
         </div>
-        <div class="selection">
-            <select required id="order" class="filter-sort">
-                <option value="0">Most recent</option>
-                <option value="1">Likes</option>
-                <option value="2">PoW</option>
-                <option value="3">News</option>
-            </select>
+        <div id="page-2">
+            <div class="info">
+                <p>Welcome!</p>
+                <p>This is a Retro Themed Open Social Client on Bitcoin where users can discuss anything and everything.</p>
+                <p>Posts, Likes, and Tips are currently supported.</p>
+                <p>Posting costs a little bit of Satoshis.</p>
+                <p>Likes cost 1 cent, the platform takes 10%.</p>
+                <p>The platform takes 5% of all tips.</p>
+                <p>Click any thumbnail of an URL to get a clean reader view of the article.</p>
+                <p>Enjoy!</p>
+            </div>
         </div>
-        <div id="message-container" class="posts"></div>
+        <div id="page-3"></div>
+        <div id="page-4"></div>
+        <!-- <div class='indicator'><div id='indicator_bar'></div></div>
+        <div id='bottomnav'>
+            <div class='bottomnav_btn perfectcenter' onclick='btnactive(this,0)'>1</div>
+            <div class='bottomnav_btn perfectcenter' onclick='btnactive(this,1)'>2</div>
+            <div class='bottomnav_btn perfectcenter' onclick='btnactive(this,2)'>3</div>
+            <div class='bottomnav_btn perfectcenter' onclick='btnactive(this,3)'>4</div>
+        </div> -->
         <div id="myModal" class="modal">
             <div class="modal-content">
               <span class="close">&times;</span>
@@ -71,7 +93,7 @@
     <script src="./scripts/html.js"></script>
     <script src="./scripts/interactions.js"></script>
     <script>
-        if (localStorage?.icon) { prof.src = localStorage.icon } else { prof.src = `./assets/images/profile.svg` }
+        if (localStorage?.icon) { prof.src = localStorage.icon } else { prof.src = `./assets/images/user.png` }
         addEventListener('DOMContentLoaded', () => {
             const parsedUrl = new URL(location);
             document.getElementById("post").value = parsedUrl.searchParams.get('text');
@@ -86,7 +108,7 @@
         document.getElementById("order").onchange = () => {
             selOrder = document.getElementById("order").value;
             localStorage.orderBy = selOrder;
-            console.log({selOrder})
+            getRetroPosts(selOrder);
         }
         if (localStorage.orderBy) {
             selOrder = localStorage.orderBy;
@@ -107,19 +129,75 @@
             const fileList = event.target.files;
             if (fileList.length) {
                 const file = fileList[0];
-                console.log(file)
-                document.getElementById('filename').innerText = `${file.name}`;
-                const p = await bsvPrice(true);
-                const centSats = parseFloat((Math.ceil(1000000 / p.rate)).toFixed(8));
-                const pennyCost = parseInt((file.size*0.05) / centSats);
-                if (pennyCost > 1) {
+                console.log(file.size)
+                if (file.size >= 100000) {
                     const m = document.getElementById('myModal');
                     m.style.display = 'block';
-                    modalText.innerText = `Uploading this file will cost an estimated additional ${pennyCost} cents!`;
+                    modalText.innerText = `Please upload only files less than 100KB.`;
+                    return;
                 }
+                document.getElementById('filename').innerText = `${file.name}`;
             }
         })
-        const login = () => location.href = '/profile';
+        const btnactive = (activediv, index) => {
+            activediv.className = activediv.className + ' active';
+            var divs = document.getElementById('bottomnav').children;
+            var bar = document.getElementById('indicator_bar');
+            bar.style.left = 25*index + '%';
+            if (activediv == divs[2]) {
+                //activediv.children[0].src = './assets/bsvlogo_white.png';
+            }
+            else if (activediv == divs[3]) {
+                //divs[2].children[0].src = './assets/bsvlogo_gray.png';
+            }
+            else {
+                //divs[2].children[0].src = './assets/bsvlogo_gray.png';
+            }
+            for (i = 0; i < divs.length; i++) {
+                if (divs[i]!=activediv) {
+                    divs[i].className = 'bottomnav_btn perfectcenter'
+                }
+            }
+            const one = document.getElementById('page-1');
+            const two = document.getElementById('page-2');
+            const three = document.getElementById('page-3');
+            const four = document.getElementById('page-4');
+            switch(index) {
+                case 0: 
+                    one.style.display = 'block';
+                    two.style.display = 'none';
+                    three.style.display = 'none';
+                    four.style.display = 'none';
+                    //document.body.style.backgroundColor = "#DCDCDC";
+                    break;
+                case 1: 
+                    one.style.display = 'none';
+                    two.style.display = 'block';
+                    three.style.display = 'none';
+                    four.style.display = 'none';
+                    //document.body.style.backgroundColor = "#DCDCDC";
+                    break;
+                case 2: 
+                    one.style.display = 'none';
+                    two.style.display = 'none';
+                    three.style.display = 'block';
+                    four.style.display = 'none';
+                    //document.body.style.backgroundColor = "#fff";
+                    break;
+                case 3: 
+                    one.style.display = 'none';
+                    two.style.display = 'none';
+                    three.style.display = 'none';
+                    four.style.display = 'block';
+                    //document.body.style.backgroundColor = "#DCDCDC";
+                    break;
+                default:
+                    one.style.display = 'block';
+                    two.style.display = 'none';
+                    //document.body.style.backgroundColor = "#DCDCDC";
+                    break;   
+            }
+        }
     </script>
     <script>window.twttr = (function(d, s, id) {
         var js, fjs = d.getElementsByTagName(s)[0],

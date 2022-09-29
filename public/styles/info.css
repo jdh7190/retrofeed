@@ -4,7 +4,7 @@ body {
     color: white;
 }
 a {
-    color: blue;
+    color: #0000EE;
 }
 .page {
     margin: 0 auto;
@@ -27,7 +27,7 @@ a {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: blue;
+    color: #0000EE;
 }
 p {
     text-align: center;

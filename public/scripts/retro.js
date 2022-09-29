@@ -146,6 +146,8 @@ const getRetroPosts = async selOrder => {
     }
     loadingDlg();
     unfurl();
+    /* const imgs = document.querySelectorAll('.imgfile');
+    lazyLoadImages(imgs) */
 }
 const youtube = content => {
     return content.replace(youRegex, url => {
@@ -185,7 +187,19 @@ const renderLink = async link => {
     if (url) {
     let r = await getImage(url);
         if (r.ogImage !== undefined) {
-            link.innerHTML += `<div class="unfurl"><a href="/readability/?url=${url}" rel="noreferrer"><img src="${r.ogImage}" class="imgfile" alt="imgfile"></a></div>`;
+            const div = document.createElement('div');
+            div.className = 'unfurl';
+            const a = document.createElement('a');
+            a.href = `/readability/?url=${url}`;
+            a.rel = 'noreferrer';
+            const img = document.createElement('img');
+            img.src = r.ogImage;
+            img.className = 'imgfile';
+            img.alt = 'imgfile';
+            a.appendChild(img);
+            div.append(a);
+            link.appendChild(div);
+            //link.innerHTML += `<div class="unfurl"><a href="/readability/?url=${url}" rel="noreferrer"><img src="${r.ogImage}" class="imgfile" alt="imgfile"></a></div>`;
         }
     }
 }

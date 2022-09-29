@@ -54,7 +54,7 @@ async function like() {
         else { return }
     }, 400);
     const likeCount = parseInt(document.getElementById(`${likedTxid}_count`).innerText);
-    const emoji = '👍';
+    const emoji = '♥';
     const l = bSocial.like(likedTxid, emoji);
     const arrops = l.getOps('utf8');
     let hexarrops = ['6a'];
@@ -93,7 +93,6 @@ const bPost = async text => {
             postPayload.image = fileData;
         }
         const arrops = p.getOps('utf8');
-        const buf = arrToBuf(arrops);
         let hexarrops = [];
         arrops.forEach(o => { hexarrops.push(str2Hex(o)) })
         const b2sign = arrToBuf(hexarrops);      
@@ -124,23 +123,4 @@ const bPost = async text => {
         console.log(e);
         showModal(e?.error?.message || e.error);
     }
-}
-const chat = async(msg, encrypt, channel) => {
-    const p = bSocial.post();
-    if (encrypt) {
-        const encKey = decryptData(localStorage.encryptedKey, localStorage.ownerKey);
-        msg = eciesEncrypt(msg, encKey);
-        channel = 'osg_enc';
-    }
-    p.addText(msg);
-    p.addMapData('paymail', localStorage.paymail);
-    if (channel) {
-        p.addMapData('context', 'channel');
-        p.addMapData('channel', channel)
-    }
-    const arrops = p.getOps('utf8');
-    let hexarr = [];
-    arrops.forEach(a => { hexarr.push(str2Hex(a)) })
-    const r = await hcPost(hexarr, 'chat');
-    console.log({r});
 }

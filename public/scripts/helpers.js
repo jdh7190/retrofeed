@@ -190,3 +190,27 @@ const loadingDlg = txt => {
         loadingPost = true;
     }
 }
+const throttle = (func, timeFrame) => {
+    let lastTime = 0;
+    return function () {
+        let now = Date.now();
+        if (now - lastTime >= timeFrame) {
+            func();
+            lastTime = now;
+        }
+    };
+}
+const lazyLoadImages = imgs => {
+    const lazyImages = [...imgs];
+    const inAdvance = 10;
+    const lazyLoad = () => {
+        lazyImages.forEach(img => {
+            if (!img.src && img.parentElement.offsetTop < window.innerHeight + window.pageYOffset + inAdvance) {
+                img.src = img.dataset.src;
+            }
+        })
+    }
+    lazyLoad();
+    addEventListener('scroll', throttle(lazyLoad, 50));
+    addEventListener('resize', throttle(lazyLoad, 50))
+}

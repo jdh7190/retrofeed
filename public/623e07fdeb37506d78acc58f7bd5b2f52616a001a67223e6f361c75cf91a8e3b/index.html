@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+    <title>Chat - retrofeed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="../styles/chat.css" rel="stylesheet" type="text/css">
+    <link href="../styles/modal.css" rel="stylesheet" type="text/css">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/uyouthe/pwacss/pwacss.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap">
+    <script src="../scripts/bsv.browser.min.js"></script>
+    <script src="../scripts/bsv-ecies.min.js"></script>
+    <script src="../scripts/helpers.js"></script>
+    <script src="../scripts/config.js"></script>
+    <script src="../scripts/api.js"></script>
+    <script src="../scripts/message.js"></script>
+    <script src="../scripts/bSocial.js"></script>
+    <script src="../scripts/post.js"></script>
+    <script src="../scripts/interactions.js"></script>
+    <!-- <script src="../scripts/run.browser.min.js"></script>
+    <script src="../scripts/runops.js"></script> -->
+   </head>
+   <body>
+    <div class="page">
+        <div class="header">
+            <h4 class="title">Chat</h4>
+            <a href="/profile" class="prof"><img id="prof" class="avatar"></a>
+            <a class="back" onclick="goBack()"><img src="../assets/images/back.png"></a>
+        </div>
+        <div class="chat-container" id="chatCon"></div>
+        <div class="footer">
+            ><input type="text" class="chat-input" autofocus id="chatInput">
+            <button type="button" class="chat-post-btn" onclick="postChat()" id="chatBtn" disabled>Post</button>
+        </div>
+    </div>
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <p class="modal-text" id="modalTxt"></p>
+        </div>
+    </div>
+    </body>
+    <script src="../scripts/html.js"></script>
+    <script src="../scripts/chat.js"></script>
+</html>

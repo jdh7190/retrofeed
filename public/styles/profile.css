@@ -52,7 +52,7 @@ p {
 .inventory {
     position: relative;
     border: 1px white solid;
-    display: none;
+    display: block;
 }
 .item {
     position: relative;
@@ -61,7 +61,7 @@ p {
 
 }
 .details {
-    
+    display: none;
 }
 .icon {
     width: 24px;

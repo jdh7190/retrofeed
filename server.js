@@ -42,12 +42,10 @@ app.post('/hcaccount', async(req, res) => {
             publicProfile.privateKey = privateKey;
             publicProfile.publicKey = publicKey;
             publicProfile.address = address;
-            //console.log(`Encrypting...`, process.env.TEST_ENCRYPTION_KEY, 'to ', publicKey);
-            //const encryptedEncryptionKey = ECIES.encrypt(process.env.TEST_ENCRYPTION_KEY, publicKey);
-            const IES = require('bsv/ecies');
+            /* const IES = require('bsv/ecies');
             const enc = new IES().publicKey(bsvPublicKey).encrypt(btoa(encodeURIComponent(process.env.TEST_ENCRYPTION_KEY)));
             const b64Enc = Buffer.from(enc).toString('base64');
-            publicProfile.encryptedKey = b64Enc;
+            publicProfile.encryptedKey = b64Enc; */
             const flds = ['paymail', 'publicKey', 'ownerAddress', 'handle', 'avatarURL', 'name'];
             const vls = [publicProfile.paymail, bsv.PublicKey.fromHex(publicKey).toHex(), address, publicProfile.handle, publicProfile.avatarUrl, publicProfile.displayName];
             const stmt = sqlDB.insert('users', flds, vls, true);
@@ -69,6 +67,19 @@ const bPostIdx = async payload => {
         const flds = ['content', 'txid', 'rawtx', 'handle', 'imgs'];
         const vls = [content, txid, rawtx, handle, image || '']
         const stmt = sqlDB.insert('posts', flds, vls, true);
+        const r = await sqlDB.sqlPromise(stmt, 'Failed to insert bPost.', '', pool);
+        return r;
+    } catch(e) {
+        console.log(e);
+        return {error:e}
+    }
+}
+const chatIdx = async payload => {
+    try {
+        const { text, txid, rawtx, handle, username, encrypted, channel } = payload;
+        const flds = ['text', 'txid', 'rawtx', 'handle', 'username', 'encrypted', 'channel'];
+        const vls = [text, txid, rawtx, handle, username, encrypted, channel]
+        const stmt = sqlDB.insert('chats', flds, vls, true);
         const r = await sqlDB.sqlPromise(stmt, 'Failed to insert bPost.', '', pool);
         return r;
     } catch(e) {
@@ -103,16 +114,19 @@ const tipTxIdx = async payload => {
 }
 app.post('/hcPost', async(req, res) => {
     const { payload, action, hcauth, content, handle } = req.body;
-    let description, likePayload, tipPayload;
+    let description, likePayload, tipPayload, chatPayload;
     switch(action) {
         case 'post': description = `retrofeed ${action}`; break;
-        case 'chat': description = `retrofeed ${action}💬`; break;
+        case 'chat': 
+            description = `retrofeed ${action} 💬`;
+            chatPayload = content;
+            break;
         case 'like':
             likePayload = content;
-            description = `retrofeed ${action}${likePayload?.emoji}`;
+            description = `retrofeed ${action} ${likePayload?.emoji}`;
             break;
         case 'tip':
-            description = `retrofeed ${action}💰`;
+            description = `retrofeed ${action} 💰`;
             tipPayload = content;
             break;
         default: break;
@@ -120,7 +134,7 @@ app.post('/hcPost', async(req, res) => {
     try {
         const cloudAccount = handCashConnect.getAccountFromAuthToken(hcauth);
         const paymentParameters = { appAction: action, description }
-        if (content.image) {
+        if (content?.image) {
             const c = Buffer.from(content.image.split(',')[1], 'base64').toString('hex');
             payload[6] = c;
         }
@@ -151,10 +165,12 @@ app.post('/hcPost', async(req, res) => {
                     await likeTxIdx({ likedTxid, handle: req.body.handle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, emoji, likedHandle });
                     break;
                 case 'chat':
+                    const { text, username, encrypted, channel } = chatPayload;
+                    console.log({chatPayload})
+                    await chatIdx({ text, handle: req.body.handle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, username, encrypted, channel })
                     break;
                 case 'tip':
                     const { tippedHandle, txid, handle, amount } = tipPayload;
-                    console.log()
                     await tipTxIdx({ tippedHandle, tippedTxid: txid, handle, txid: paymentResult.transactionId, amount });
                     break;
                 default:
@@ -175,12 +191,31 @@ app.post('/hcPost', async(req, res) => {
     }
 })
 app.get('/getPosts', async(req, res) => {
+    const {order} = req.query;
+    let orderBy;
+    if (order === '1') {
+        orderBy = 'likeCount'
+    } else {
+        orderBy = 'createdDateTime'
+    }
     try {
         const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, imgs FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
             join retro.users on users.handle = posts.handle
-        group by posts.id order by createdDateTime desc`;
+        group by posts.id order by ${orderBy} desc`;
         const r = await sqlDB.sqlPromise(stmt, 'Failed to register user.', '', pool);
+        res.send(r);
+    } catch (e) {
+        console.log(e);
+        res.send({error:'Failed to fetch from database.'});
+    }
+});
+app.get('/getChats', async(req, res) => {
+    try {
+        const stmt = `SELECT chats.txid, text, chats.handle, username, users.avatarURL as icon, encrypted, channel FROM retro.chats
+            join retro.users on users.handle = chats.handle
+        order by chats.createdDateTime asc LIMIT 50`;
+        const r = await sqlDB.sqlPromise(stmt, 'Failed to query chats.', '', pool);
         res.send(r);
     } catch (e) {
         console.log(e);

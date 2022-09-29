@@ -13,7 +13,7 @@ const hcPost = async(payload, action, content) => {
     return res;
 }
 const getPosts = async order => {
-    const res = await (await fetch(`/getPosts/?sort=${order}`)).json();
+    const res = await (await fetch(`/getPosts/?order=${order}`)).json();
     return res;
 }
 const getMyLikes = async handle => {

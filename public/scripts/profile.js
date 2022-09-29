@@ -41,7 +41,7 @@ const imageHelper = (metadata, origin) => {
 const inventoryManager = async() => {
     const run = initRun();
     loadingDlg('Searching bag');
-    const utxos = await run.blockchain.utxos(run.owner.address);
+    const utxos = []; //await run.blockchain.utxos(run.owner.address);
     if (utxos?.length) {
         for (const utxo of utxos) {
             const jig = await run.load(`${utxo.txid}_o${utxo.vout}`);
@@ -58,21 +58,21 @@ const inventoryManager = async() => {
         const noItems = { text: 'No items.' };
         createItem(noItems);
     }
-    const p = document.createElement('p');
+    /* const p = document.createElement('p');
     p.innerText = localStorage.ownerAddress;
-    ownerDetails.appendChild(p);
+    ownerDetails.appendChild(p); */
     loadingDlg();
 }
 if (localStorage?.icon) {
     login.style.display = 'none';
     prof.src = localStorage.icon;
-    /* inventoryManager();
-    inventory.style.display = 'block'; */
+    inventoryManager();
+    //inventory.style.display = 'block';
 
 } else {
     login.style.display = 'block';
     inventory.style.display = 'none';
-    prof.src = '../assets/images/profile.svg';
+    prof.src = '../assets/images/user.png';
 }
 const getHcProfile = async() => {
     if (location.href.includes('authToken')) {
