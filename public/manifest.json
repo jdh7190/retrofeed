@@ -30,7 +30,7 @@
       "name": "Feed",
       "short_name": "Feed",
       "url": "/",
-      "icons": [{ "src": "/assets/images/feed.png", "sizes": "130x160" }]
+      "icons": [{ "src": "/assets/images/feed.png", "sizes": "96x96" }]
     },
     {
       "name": "Profile",

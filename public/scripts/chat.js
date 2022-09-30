@@ -120,10 +120,11 @@ const postChat = async() => {
     chatInput.value = '';
     section.scrollIntoView(false);
 }
-const ws = new WebSocket('ws://localhost:7777');
-ws.onopen = e => {
-    console.log(`OPENED`, e);
-}
+const protocol = location.protocol.includes('https') ? 'wss' : 'ws';
+const host = location.host.includes('localhost') ? `${location.hostname}:7777` : location.hostname;
+const WS_URL = `${protocol}://${location.host}`;
+const ws = new WebSocket(`${protocol}://${host}`);
+ws.onopen = e => { console.log(`OPENED`, e) }
 ws.onmessage = async e => {
     console.log(`MESSAGE`, e);
     const str = await e.data.text()
