@@ -135,6 +135,9 @@ ws.onmessage = async e => {
         chatSound.play();
     }
 }
+ws.onerror = e => {
+    console.log(`WS ERROR`, e);
+}
 ws.onclose = e => {
     if (e.wasClean) {
         console.log(e.code, e.reason);
