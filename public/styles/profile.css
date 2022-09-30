@@ -1,21 +1,30 @@
+@font-face {
+    font-family: 'SMT';
+    src: url('../assets/fonts/ndsbios.ttf') format('truetype')
+}
 body {
     background-color:#212529;
-    font-family: 'Press Start 2P'
+    font-family: 'SMT';
+}
+button, input {
+    font-family: 'SMT';
+    font-size: 22px;
 }
 .text {
     letter-spacing: 1.5px;
     line-height: 1.6;
-    color: white;
+    color: #e9e4ee;
     text-align: center;
 }
 p {
     letter-spacing: 1.5px;
     line-height: 1.6;
-    color: white;
+    color: #e9e4ee;
 }
 .page {
     margin: 0 auto;
     font-size: 13px;
+    font-size: 25px;
     min-width: 360px;
     max-width: 768px;
 }
@@ -25,10 +34,11 @@ p {
 }
 .title {
     position: absolute;
-    top: 50%;
+    letter-spacing: 1.5px;
+    top: 20px;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: blue;
+    color: #0000EE;
 }
 .prof {
     border-radius: 50%;
@@ -36,7 +46,6 @@ p {
     float: right;
     position: relative;
     bottom: 5px;
-    background-color: white;
 }
 .avatar {
     border-radius: 50%;
@@ -51,7 +60,8 @@ p {
 }
 .inventory {
     position: relative;
-    border: 1px white solid;
+    border: 5px #e9e4ee solid;
+    border-radius: 5px;
     display: block;
 }
 .item {
@@ -90,15 +100,14 @@ p {
     position: relative;
 }
 .btn {
-    font-family: 'Press Start 2P';
-    letter-spacing: 0.5px;
+    letter-spacing: 1.5px;
     box-shadow: 0px 1px 3px hsla(0, 0%, 0%, .15);
     cursor: pointer;
 }
 .handcash {
     margin-top: 20px;
     position: relative;
-    width: 160px;
+    width: 120px;
     height: 40px;
     color: white;
     background-image: linear-gradient(#38CB7C, #1CB462);
@@ -122,7 +131,6 @@ p {
     position: relative;
     left: 10px;
     float: left;
-    /* top: -10px; */
     cursor: pointer;
     height: 40px;
     width: 40px;
@@ -130,4 +138,13 @@ p {
 .details {
     margin-top: 20px;
     font-size: 8px;
+}
+.bottom-section {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+a:visited {
+    color: #0000EE;
 }

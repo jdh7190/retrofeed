@@ -22,6 +22,13 @@ const closeModal = () => {
     tipSection.style.display = 'none';
     modal.style.display = 'none';
 }
+const dots = setInterval(() => {
+    const wait = modalText;
+    if (loadingPost === true) {
+        if (wait.innerText.length > loadingText.length + 2) { wait.innerText = loadingText } 
+        else { wait.innerText += "." }
+    }
+}, 300);
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/serviceworker.js')
     .then(registration => {console.log('Registration successful, scope is:', registration.scope)})

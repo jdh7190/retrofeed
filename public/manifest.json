@@ -19,6 +19,26 @@
       "url": "url"
     }
   },
+  "shortcuts": [
+    {
+        "name": "Chat",
+        "short_name": "Chat",
+        "url": "/chat",
+        "icons": [{ "src": "/assets/images/chat.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Feed",
+      "short_name": "Feed",
+      "url": "/",
+      "icons": [{ "src": "/assets/images/feed.png", "sizes": "130x160" }]
+    },
+    {
+      "name": "Profile",
+      "short_name": "Profile",
+      "url": "/profile",
+      "icons": [{ "src": "/assets/images/userprofile.png", "sizes": "96x96" }]
+    }
+],
   "icons": [
     {
       "src": "assets/images/icon_192_noback.png",

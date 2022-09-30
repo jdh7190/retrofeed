@@ -8,8 +8,22 @@ const { HandCashConnect } = require('@handcash/handcash-connect');
 const handCashConnect = new HandCashConnect({appId: process.env.APP_ID, appSecret: process.env.APP_SECRET});
 const JSDOM = require('jsdom').JSDOM;
 const app = express(), port = process.env.SERVER_PORT;
+const WebSocket = require('ws');
+const chatPort = 7777;
+const wss = new WebSocket.Server({ port: chatPort });
+const clients = new Map();
+wss.on('listening', () => {
+    console.log(`WSS Listening on port ${chatPort}...`)
+})
+wss.on('connection', ws => {
+    const id = Math.floor(Math.random()*10000);
+    clients.set(ws, id);
+    ws.on('close', () => {
+        clients.delete(ws);
+    })
+});
 app.use(express.static('public'));
-app.use(express.json({type: ['application/json', 'text/plain'],limit:'50mb'}));
+app.use(express.json({type:['application/json', 'text/plain'], limit:'50mb'}));
 app.use(express.urlencoded({extended:true, limit:'50mb'}));
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -81,6 +95,20 @@ const chatIdx = async payload => {
         const vls = [text, txid, rawtx, handle, username, encrypted, channel]
         const stmt = sqlDB.insert('chats', flds, vls, true);
         const r = await sqlDB.sqlPromise(stmt, 'Failed to insert bPost.', '', pool);
+        if (r?.insertId) {
+            const selectStmt = `SELECT chats.txid, chats.text, chats.handle, chats.createdDateTime, channel, encrypted, users.avatarURL as icon, users.paymail FROM retro.chats
+                join retro.users on users.handle = chats.handle
+            where chats.id = ${r.insertId}
+            group by handle`;
+            const chat = await sqlDB.sqlPromise(selectStmt, 'Failed to get newly inserted chat.', '', pool);
+            if (chat.length) {
+                wss.clients.forEach(client => {
+                    if (client !== wss && client.readyState === WebSocket.OPEN) {
+                        client.send(Buffer.from(JSON.stringify(chat[0])));
+                    }
+                })
+            }
+        }
         return r;
     } catch(e) {
         console.log(e);
@@ -166,7 +194,6 @@ app.post('/hcPost', async(req, res) => {
                     break;
                 case 'chat':
                     const { text, username, encrypted, channel } = chatPayload;
-                    console.log({chatPayload})
                     await chatIdx({ text, handle: req.body.handle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, username, encrypted, channel })
                     break;
                 case 'tip':
@@ -180,7 +207,7 @@ app.post('/hcPost', async(req, res) => {
         res.send({ paymentResult });
     }
     catch (error) { 
-        console.log('HERE?',{error})
+        console.log({error})
         if (error?.response) {
             console.log(error.response.data)
         }
@@ -212,8 +239,9 @@ app.get('/getPosts', async(req, res) => {
 });
 app.get('/getChats', async(req, res) => {
     try {
-        const stmt = `SELECT chats.txid, text, chats.handle, username, users.avatarURL as icon, encrypted, channel FROM retro.chats
+        const stmt = `SELECT chats.txid, text, chats.handle, username, users.avatarURL as icon, channel, chats.createdDateTime FROM retro.chats
             join retro.users on users.handle = chats.handle
+        where encrypted = 0
         order by chats.createdDateTime asc LIMIT 50`;
         const r = await sqlDB.sqlPromise(stmt, 'Failed to query chats.', '', pool);
         res.send(r);
@@ -223,7 +251,6 @@ app.get('/getChats', async(req, res) => {
     }
 });
 app.get('/getPost', async(req, res) => {
-    console.log(req.query);
     try {
         const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, imgs FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
@@ -276,7 +303,6 @@ app.get('/readability', async(req, res) => {
     } catch (error) { console.log(error); res.send({error}) }
 });
 app.post('/bPost', async(req, res) => {
-    console.log(req.body)
     try {
         const r = await bPostIdx(req.body);
         if (r.affectedRows > 0) { console.log(`Inserted ${txid}!`) }

@@ -2,13 +2,6 @@ const messageContainer = document.getElementById('message-container');
 const bSocial = new BSocial(APP);
 const chatApp = new BSocial(APP);
 var myLikes = [];
-const dots = setInterval(() => {
-    const wait = modalText;
-    if (loadingPost === true) {
-        if (wait.innerText.length > loadingText.length + 2) { wait.innerText = loadingText } 
-        else { wait.innerText += "." }
-    }
-}, 300);
 const manageContent = (content, con) => {
     content = content.replace('$osg', '')
     if (content.includes('twitter.com')) {

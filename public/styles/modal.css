@@ -14,16 +14,18 @@
 .modal-content {
     background-color: #fefefe;
     margin: 15% auto;
-    padding: 20px;
+    padding: 10px;
     border: 5px solid #e9e4ee;
     border-radius: 5px;
     width: 90%;
     max-width: 740px;
     min-width: 300px;
     background-color:#212529;
-    font-family: 'Press Start 2P';
-    color: white;
-    font-size: 13px;
+    color: #e9e4ee;
+}
+.modal-text {
+    padding: 10px;
+    width: 90%;
 }
 .close {
     color: #e9e4ee;
@@ -34,4 +36,30 @@
 .close:hover, .close:focus {
     text-decoration: none;
     cursor: pointer;
+}
+.tip-section {
+    position: relative;
+    display: none;
+    padding: 10px;
+}
+.tip-input {
+    height: 30px;
+    letter-spacing: 1.5px;
+    /* font-family: 'Press Start 2P'; */
+    font-family: 'SMT';
+    font-size: 22px;
+    width: 175px;
+}
+.tip-btns {
+    display: none;
+    margin-top: 10px;
+}
+.tip-btn {
+    /* font-family: 'Press Start 2P'; */
+    background-color: green;
+    cursor: pointer;
+    height: 25px;
+}
+.tip-btn:hover {
+    opacity: 0.7;
 }

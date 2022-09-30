@@ -1,14 +1,18 @@
+@font-face {
+    font-family: 'SMT';
+    src: url('../assets/fonts/ndsbios.ttf') format('truetype')
+}
 body {
     background-color: #212529;
-    font-family: 'Press Start 2P';
-    color: white;
+    font-family: 'SMT';
+    color: #e9e4ee;
 }
 a {
     color: #0000EE;
 }
 .page {
     margin: 0 auto;
-    font-size: 13px;
+    font-size: 25px;
     min-width: 320px;
     max-width: 768px;
 }
@@ -24,13 +28,14 @@ a {
 }
 .title {
     position: absolute;
-    top: 50%;
+    letter-spacing: 1.5px;
+    top: 7px;
     left: 50%;
     transform: translate(-50%, -50%);
     color: #0000EE;
 }
 p {
-    text-align: center;
+    /* text-align: center; */
     line-height: 1.6;
     letter-spacing: 1.5px;
 }

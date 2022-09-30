@@ -19,8 +19,8 @@
    <body>
     <div class="page">
         <div class="header">
-            <h4 class="title">Profile</h4>
             <a href="/profile" class="prof"><img id="prof" class="avatar"></a>
+            <div class="title">Profile</div>
             <a class="back" onclick="goBack()"><img src="../assets/images/back.png"></a>
         </div>
         <div class="profile center">
@@ -42,11 +42,15 @@
                 <span>Logout</span>
             </button>
         </div>
+        <div class="bottom-section">
+            <a href="/info">Info</a>
+            <a href="/privacy">Privacy Policy</a>
+        </div>
     </div>
     <div id="myModal" class="modal">
         <div class="modal-content">
           <span class="close">&times;</span>
-          <p class="modal-text" id="modalTxt"></p>
+          <div class="modal-text" id="modalTxt"></div>
         </div>
     </div>
     </body>

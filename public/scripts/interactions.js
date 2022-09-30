@@ -17,9 +17,9 @@ function shareBPost() {
 async function boost() {
     console.log('Boosting...')
 }
-function tip() {
-    const handle = this.dataset.handle;
-    const txid = this.dataset.txid;
+function tip(handleToTip, tippedTxid) {
+    const handle = this?.dataset?.handle || handleToTip;
+    const txid = tippedTxid || this.dataset.txid;
     const m = document.getElementById('myModal');
     m.style.display = 'block';
     modalText.innerText = `How much would you like to tip $${handle}?`;
@@ -33,6 +33,8 @@ function tip() {
         loadingDlg('Tipping');
         const payload = { tippedHandle: handle, amount: amt, txid, handle: localStorage.paymail.split('@')[0] };
         const p = await hcPost(null, 'tip', payload);
+        const coinSound = new Audio();
+        coinSound.src = '../assets/sounds/nes_coin.wav';
         loadingDlg();
         coinSound.play();
     }
@@ -104,7 +106,6 @@ const bPost = async text => {
         const res = await hcPost(hexarr, 'post', postPayload);
         console.log({res});
         if (res?.paymentResult?.transactionId) {
-            console.log(postPayload.image)
             const tempPost = {
                 content: post,
                 createdDateTime: Date.now(),

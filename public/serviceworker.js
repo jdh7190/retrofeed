@@ -1,4 +1,4 @@
-var CACHE_NAME = 'v0.07';
+var CACHE_NAME = 'v0.08';
 var urlsToCache = [
   '/index.html',
   '/manifest.json',
@@ -9,6 +9,7 @@ var urlsToCache = [
   '/scripts/bsv-ecies.min.js',
   '/scripts/bsv.browser.min.js',
   '/scripts/config.js',
+  '/scripts/chat.js',
   '/scripts/helpers.js',
   '/scripts/html.js',
   '/scripts/interactions.js',
@@ -18,6 +19,7 @@ var urlsToCache = [
   '/scripts/profile.js',
   '/scripts/readability.js',
   '/scripts/retro.js',
+  '/styles/chat.css',
   '/styles/icons.css',
   '/styles/info.css',
   '/styles/modal.css',
@@ -33,7 +35,11 @@ var urlsToCache = [
   '/assets/images/question_block_32.png',
   '/assets/images/videoplay.png',
   '/assets/sounds/heartpiece.wav',
-  '/assets/sounds/nes_coin.wav'
+  '/assets/sounds/nes_coin.wav',
+  '/assets/sounds/get_heart.wav',
+  '/assets/images/userprofile.png',
+  '/assets/images/chat.png',
+  '/assets/images/feed.png'
 ]
 self.addEventListener('install', event => {
   event.waitUntil(

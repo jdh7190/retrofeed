@@ -33,14 +33,16 @@
    </head>
    <body>
     <div class="page">
+      <div class="header">
         <a href="/profile" class="prof" name="profile"><img id="prof" class="avatar" alt="avatar"></a>
         <h4 class="title center">retrofeed</h4>
         <a href="/info" class="help"><img class="question" src="../assets/images/question_block_32.png" alt="question"></a>
+      </div>
         <div id="message-container" class="posts"></div>
         <div id="myModal" class="modal">
             <div class="modal-content">
               <span class="close">&times;</span>
-              <p class="modal-text" id="modalTxt"></p>
+              <div class="modal-text" id="modalTxt"></div>
               <div class="tip-section" id="tipSection">
                 <span>
                     $<input type="number" class="tip-input" min="0" value="0.01" id="tipAmt" step=0.01>
@@ -55,11 +57,9 @@
     <script src="../scripts/interactions.js"></script>
    </body>
    <script>
-        if (localStorage?.icon) { prof.src = localStorage.icon } else { prof.src = `./assets/images/user.png` }
+        if (localStorage?.icon) { prof.src = localStorage.icon } else { prof.src = `./assets/images/userprofile.png` }
         const params = new URLSearchParams(location.search);
         const txid = params.get('txid');
-        const coinSound = new Audio();
-        coinSound.src = '/assets/sounds/nes_coin.wav';
         const heartSound = new Audio();
         heartSound.src = '/assets/sounds/heartpiece.wav';
         var loadingPost = false, selOrder = 0, loadingLike = false, loadingText = '';

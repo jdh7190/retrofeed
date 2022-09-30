@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
+<head>
     <title>Chat - retrofeed</title>
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="../styles/chat.css" rel="stylesheet" type="text/css">
     <link href="../styles/modal.css" rel="stylesheet" type="text/css">
+    <link href="../styles/icons.css" rel="stylesheet" type="text/css">
     <link rel="manifest" href="../manifest.json">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/uyouthe/pwacss/pwacss.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap">
@@ -17,29 +19,34 @@
     <script src="../scripts/bSocial.js"></script>
     <script src="../scripts/post.js"></script>
     <script src="../scripts/interactions.js"></script>
-    <!-- <script src="../scripts/run.browser.min.js"></script>
-    <script src="../scripts/runops.js"></script> -->
-   </head>
-   <body>
-    <div class="page">
-        <div class="header">
-            <h4 class="title">Chat</h4>
+</head>
+<body>
+    <div class="section" id="section">
+      <div class="header">
+        <div class="title">Chat</div>
             <a href="/profile" class="prof"><img id="prof" class="avatar"></a>
             <a class="back" onclick="goBack()"><img src="../assets/images/back.png"></a>
-        </div>
-        <div class="chat-container" id="chatCon"></div>
-        <div class="footer">
-            ><input type="text" class="chat-input" autofocus id="chatInput">
-            <button type="button" class="chat-post-btn" onclick="postChat()" id="chatBtn" disabled>Post</button>
-        </div>
+      </div>
+      <div class='container' id="chatCon" onClick="javascript:document.querySelector('input[type=text]').focus()"></div>
+      <div class='input'>
+          <div class="tick">></div>
+          <input autofocus name='chat' id='chatInput' type='text' placeholder='' autocomplete='off'>
+          <input type='button' value="Post" id="chatBtn" class="post-btn" onclick="postChat()">
+      </div>
     </div>
     <div id="myModal" class="modal">
         <div class="modal-content">
           <span class="close">&times;</span>
-          <p class="modal-text" id="modalTxt"></p>
+          <div class="modal-text" id="modalTxt"></div>
+          <div class="tip-section" id="tipSection">
+            <span>
+                $<input type="number" class="tip-input" min="0" value="0.01" id="tipAmt" step=0.01>
+                <button class="tip-btn" id="tipConfirm">Tip</button>
+            </span>
+          </div>
         </div>
     </div>
-    </body>
-    <script src="../scripts/html.js"></script>
-    <script src="../scripts/chat.js"></script>
+</body>
 </html>
+<script src="../scripts/html.js"></script>
+<script src="../scripts/chat.js"></script>

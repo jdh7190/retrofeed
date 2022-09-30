@@ -72,7 +72,7 @@ if (localStorage?.icon) {
 } else {
     login.style.display = 'block';
     inventory.style.display = 'none';
-    prof.src = '../assets/images/user.png';
+    prof.src = '../assets/images/userprofile.png';
 }
 const getHcProfile = async() => {
     if (location.href.includes('authToken')) {
