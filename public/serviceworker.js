@@ -1,6 +1,6 @@
-var CACHE_NAME = 'v0.12';
+var CACHE_NAME = 'v0.13';
 var urlsToCache = [
-  /* '/index.html',
+  '/index.html',
   '/manifest.json',
   '/info/index.html',
   '/profile/index.html',
@@ -43,7 +43,7 @@ var urlsToCache = [
   '/assets/sounds/nes_coin.wav',
   '/assets/sounds/get_heart.wav',
   '/assets/sounds/pickupCoin.wav',
-  '/assets/images/userprofile.png' */
+  '/assets/images/userprofile.png'
 ]
 self.addEventListener('install', event => {
   event.waitUntil(
