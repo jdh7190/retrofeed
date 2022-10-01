@@ -18,6 +18,10 @@ async function boost() {
     console.log('Boosting...')
 }
 function tip(handleToTip, tippedTxid) {
+    if (!localStorage.hcauth) { 
+        location.href = '/profile';
+        return;
+    }
     const handle = this?.dataset?.handle || handleToTip;
     const txid = tippedTxid || this.dataset.txid;
     const m = document.getElementById('myModal');
@@ -68,7 +72,7 @@ async function like() {
     const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', localStorage.ownerAddress, signature]);
     let hexarr = [];
     payload.forEach(p => { hexarr.push(str2Hex(p)) })
-    const likePayload = { emoji, likedTxid, likedHandle: heart.data }
+    const likePayload = { emoji, likedTxid, likedHandle: heart.data, hexcode: '2665' }
     const p = await hcPost(hexarr, 'like', likePayload);
     console.log({p})
     loadingLike = false;

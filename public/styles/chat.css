@@ -28,11 +28,13 @@
 }
 .row {
     padding: 8px 0;
+    margin-top: 20px;
 }
 .row .m {
     flex-grow: 1;
     overflow-wrap: break-word;
     margin-left: 50px;
+    /* width: 100%; */
 }
 .row .t {
     color: rgba(255,255,255,0.3);
@@ -68,7 +70,7 @@ html::after {
 body {
     color: #e9e4ee;
     /* height: 100vh; */
-    margin: 0 auto;
+    margin: 0;
     display: flex;
     flex-direction: column;
     font-family: 'SMT';
@@ -78,9 +80,10 @@ body {
     justify-content: center;
     align-items: center;
     min-width: 360px;
+    overflow-x: hidden;
 }
 .section {
-    max-width: 1200px;
+    max-width: 800px;
 }
 .pre {
     margin-top: 20px;
@@ -161,5 +164,52 @@ i.fa-bitcoin {
     left: 5px;
     top: 2px;
     position: relative;
+    cursor: pointer;
+}
+.urlFormat {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #0000EE;
+}
+.word-wrap {
+    color:#0000EE;
+    -ms-word-break: break-all;
+    word-break: break-all;
+    word-break: break-word;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
+}
+.emoji-reaction {
+    float: right;
+    position: relative;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+.custom-emoji {
+    width: 24px;
+    height: 24px;
+    /* width: 1em;
+    height: 1em; */
+}
+.emoji-picker {
+    background-color: #212529;
+}
+.emoji-section {
+    display: flex;
+    margin-top: 10px;
+    margin-left: 45px;
+}
+.reacted {
+    font-size: 16px;
+    border-radius: 25%;
+    border: 1px solid black;
+    background-color: grey;
+    margin: 4px;
+    padding: 0.5px;
+    padding-right: 1px;
+    width: fit-content;
     cursor: pointer;
 }

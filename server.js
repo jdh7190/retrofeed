@@ -117,9 +117,9 @@ const chatIdx = async payload => {
 }
 const likeTxIdx = async payload => {
     try {
-        const { likedTxid, txid, rawtx, handle, likedHandle, emoji } = payload;
-        const flds = ['likedTxid', 'txid', 'rawtx', 'handle', 'likedHandle', 'emoji'];
-        const vls = [likedTxid, txid, rawtx, handle, likedHandle, emoji]
+        const { likedTxid, txid, rawtx, handle, likedHandle, emoji, hexcode } = payload;
+        const flds = ['likedTxid', 'txid', 'rawtx', 'handle', 'likedHandle', 'emoji', 'hexcode'];
+        const vls = [likedTxid, txid, rawtx, handle, likedHandle, emoji, hexcode]
         const stmt = sqlDB.insert('likes', flds, vls, true);
         const r = await sqlDB.sqlPromise(stmt, 'Failed to insert like.', '', pool);
         return r;
@@ -153,6 +153,10 @@ app.post('/hcPost', async(req, res) => {
             likePayload = content;
             description = `retrofeed ${action} ${likePayload?.emoji}`;
             break;
+        case 'emoji reaction':
+            likePayload = content;
+            description = `${action} ${likePayload?.emoji}`;
+            break;
         case 'tip':
             description = `retrofeed ${action} 💰`;
             tipPayload = content;
@@ -170,15 +174,22 @@ app.post('/hcPost', async(req, res) => {
             paymentParameters.attachment = { format: 'hexArray', value: payload }
         }
         if (likePayload?.likedHandle) {
-            paymentParameters.payments = [
-                { destination: likePayload.likedHandle, currencyCode: 'USD', sendAmount: 0.009 },
-                { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: 0.001 }
-            ]
+            if (action === 'emoji reaction') {
+                paymentParameters.payments = [
+                    { destination: likePayload.likedHandle, currencyCode: 'BSV', sendAmount: 0.000009 },
+                    { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'BSV', sendAmount: 0.000001 }
+                ]
+            } else {
+                paymentParameters.payments = [
+                    { destination: likePayload.likedHandle, currencyCode: 'USD', sendAmount: 0.009 },
+                    { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: 0.001 }
+                ]
+            }
         }
         if (tipPayload?.handle) {
             paymentParameters.payments = [
-                { destination: tipPayload.tippedHandle, currencyCode: 'USD', sendAmount: tipPayload.amount*0.95 },
-                { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: tipPayload.amount*0.05 }
+                { destination: tipPayload.tippedHandle, currencyCode: 'USD', sendAmount: tipPayload.amount*0.9 },
+                { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: tipPayload.amount*0.1 }
             ]
         }
         const paymentResult = await cloudAccount.wallet.pay(paymentParameters);
@@ -189,8 +200,9 @@ app.post('/hcPost', async(req, res) => {
                     await bPostIdx({ content: content.text, image: content.image, handle: postHandle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex });
                     break;
                 case 'like':
-                    const { likedTxid, emoji, likedHandle } = likePayload;
-                    await likeTxIdx({ likedTxid, handle: req.body.handle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, emoji, likedHandle });
+                case 'emoji reaction':
+                    let { likedTxid, emoji, likedHandle, hexcode } = likePayload;
+                    await likeTxIdx({ likedTxid, handle: req.body.handle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, emoji, likedHandle, hexcode });
                     break;
                 case 'chat':
                     const { text, username, encrypted, channel } = chatPayload;
@@ -238,11 +250,13 @@ app.get('/getPosts', async(req, res) => {
     }
 });
 app.get('/getChats', async(req, res) => {
+    const { c } = req.query;
     try {
         const stmt = `SELECT chats.txid, text, chats.handle, username, users.avatarURL as icon, channel, chats.createdDateTime FROM retro.chats
             join retro.users on users.handle = chats.handle
         where encrypted = 0
-        order by chats.createdDateTime asc LIMIT 50`;
+        ${c ? `and channel = '${c}'` : ''}
+        order by chats.createdDateTime desc LIMIT 50`;
         const r = await sqlDB.sqlPromise(stmt, 'Failed to query chats.', '', pool);
         res.send(r);
     } catch (e) {
@@ -269,7 +283,20 @@ app.get('/myLikes', async(req, res) => {
     try {
         const stmt = `SELECT likedTxid from likes where handle = '${handle}'`;
         const r = await sqlDB.sqlPromise(stmt, `Failed to query likes for ${handle}`, 'No likes found.', pool);
-        res.send(r)
+        res.send(r);
+    } catch(e) {
+        console.log(e);
+        res.send({error:e})
+    }
+})
+app.post('/chatReactions', async(req, res) => {
+    const { createdDateTime } = req.body;
+    try {
+        const stmt = `select likedTxid, id, handle, emoji, hexcode from retro.likes
+            where createdDateTime >= '${createdDateTime}'
+            AND hexcode is not NULL`;
+        const r = await sqlDB.sqlPromise(stmt, 'Failed to query likes for chats.', 'No likes found.', pool);
+        res.send(r);
     } catch(e) {
         console.log(e);
         res.send({error:e})

@@ -1,5 +1,5 @@
 const chatApp = new BSocial(APP);
-var loadingPost = false, loadingText = '';
+var loadingPost = false, loadingText = '', reactions = [];
 /* prof.src = localStorage?.icon ? localStorage.icon : '../assets/images/user.png'; */
 const chatInput = document.getElementById('chatInput');
 const chatBtn = document.getElementById('chatBtn');
@@ -14,6 +14,10 @@ const checkPost = () => {
 chatInput.onkeyup = e => {
     checkPost();
     if ((e.key === 'Enter' || e.keyCode === 13) && chatInput.value !== '') {
+        if (!localStorage.hcauth) { 
+            location.href = '/profile';
+            return;
+        }
         postChat();
     }
 }
@@ -21,29 +25,122 @@ const chatCon = document.getElementById('chatCon');
 const section = document.getElementById('section');
 const chatSound = new Audio();
 chatSound.src = '../assets/sounds/get_heart.wav';
+const pickupCoin = new Audio();
+pickupCoin.src = '../assets/sounds/pickupCoin.wav';
 document.addEventListener("DOMContentLoaded", e => {
     chatSound.volume = 0.50;
+    pickupCoin.volume = 0.25;
 })
 const getChats = async() => {
-    const chats = await (await fetch('/getChats')).json();
-    chats.forEach(chat => {
-        chat.paymail = `${chat.handle}@handcash.io`;
-        if (chat.encrypted) {
-            const m = decryptChatMsg(chat.text);
-            chat.text = m;
+    const q = chatChannel ? `/getChats/?c=${chatChannel}` : '/getChats'
+    const chats = await (await fetch(q)).json();
+    if (chats?.length) {
+        const idx = chats.length - 1;
+        reactions = await getChatReactions(chats[idx].createdDateTime);
+        for (let i = idx; i > -1; i--) {
+            chats[i].paymail = `${chats[i].handle}@handcash.io`;
+            if (chats[i].encrypted) {
+                const m = decryptChatMsg(chats[i].text);
+                chats[i].text = m;
+            }
+            addChatMsg(chats[i]);
         }
-        addChatMsg(chat);
-    })
+    }
     section.scrollIntoView(false)
 }
 const urlParams = new URLSearchParams(location.search);
 const chatChannel = urlParams.get('c') || '';
-var encryp = chatChannel?.includes('enc') || false;
+var encryp = false;
 getChats();
 async function coinTip() {
     const tippedTxid = this.id;
     const paymail = this.dataset.paymail;
     tip(paymail, tippedTxid);
+}
+const emojiLike = async(emoji, hexcode, txid, handle) => {
+    const l = chatApp.like(txid, emoji);
+    const arrops = l.getOps('utf8');
+    let hexarrops = ['6a'];
+    arrops.forEach(o => { hexarrops.push(str2Hex(o)) })
+    hexarrops.push('7c');
+    const b2sign = hexArrayToBSVBuf(hexarrops);
+    const bsvPrivateKey = bsv.PrivateKey.fromWIF(localStorage.ownerKey);
+    const signature = bsvMessage.sign(b2sign.toString(), bsvPrivateKey);
+    const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', localStorage.ownerAddress, signature]);
+    let hexarr = [];
+    payload.forEach(p => { hexarr.push(str2Hex(p)) })
+    const likePayload = { emoji, likedTxid: txid, likedHandle: handle, hexcode }
+    const p = await hcPost(hexarr, 'emoji reaction', likePayload);
+    console.log(p);
+    pickupCoin.play();
+}
+const customEmojis = [
+    {
+        emoji: 'SHUA',
+        label: 'SHUACoin',
+        url: '/assets/images/shua.png',
+        tags: ['bsv', 'token', 'shua'],
+        data: { id: 719 }
+    }
+]
+async function pickEmoji() {
+    if (!localStorage.hcauth) { 
+        location.href = '/profile';
+        return;
+    }
+    const reactedTxid = this.id;
+    const handle = this.dataset.handle;
+    const trigger = this;
+    const picker = picmoPopup.createPopup({ theme: 'dark', custom: customEmojis }, { referenceElement: trigger, triggerElement: trigger })
+    picker.open();
+    picker.addEventListener('emoji:select', e => {
+        try {
+            console.log(e)
+            const es = document.getElementById(`${reactedTxid}_es`);
+            const hexcode = e?.hexcode || e?.url;
+            const found = emojiExists(es, e.hexcode);
+            if (found) {
+                incReaction(found);
+            } else {
+                es.appendChild(addReaction(e.emoji, hexcode));
+                emojiLike(e.emoji, hexcode, reactedTxid, handle);
+            }
+        } catch(e) {
+            console.log(e);
+            alert(e);
+        }
+    })
+}
+async function incReaction(el) {
+    if (!localStorage.hcauth) { 
+        location.href = '/profile';
+        return;
+    }
+    try {
+        const elem = this?.id ? this : el;
+        const parentTxid = elem.parentElement?.id.slice(0,64);
+        const emoji = elem.innerText.split(' ')[0];
+        const handle = elem.parentElement.dataset.handle;
+        let count = parseInt(elem.innerText.split(' ')[1])+1;
+        elem.innerText = `${emoji} ${count}`;
+        emojiLike(emoji, this.id, parentTxid, handle);
+    } catch(e) {
+        console.log(e);
+        alert(e);
+    } 
+}
+const addReaction = (emoji, hexcode) => {
+    const reaction = document.createElement('div');
+    reaction.className = 'reacted';
+    reaction.id = hexcode;
+    reaction.innerHTML = `${emoji} 1`;
+    reaction.onclick = incReaction;
+    return reaction;
+}
+const emojiExists = (parent, hexcode) => {
+    const arr = Array.from(parent.children);
+    const found = arr.find(a => a.id === hexcode);
+    return found;
 }
 const addChatMsg = o => {
     const { icon, paymail, username, text, txid } = o;
@@ -52,9 +149,16 @@ const addChatMsg = o => {
     const i = document.createElement('img');
     i.src = icon;
     i.className = 'chat-icon';
+    const ei = document.createElement('img');
+    ei.src = '../assets/images/emoji-reaction.svg';
+    ei.className = 'emoji-reaction';
+    ei.onclick = pickEmoji;
+    ei.id = txid;
+    ei.dataset.handle = paymail;
     const m = document.createElement('div');
     m.className = 'm';
-    m.innerText = `${paymail}: ${text}`;
+    const content = text.replace(urlRegex, url => { return `<a class="word-wrap" href='${url}' rel="noreferrer" target="_blank">${url}</a>` })
+    m.innerHTML = `${paymail}: ${content}`;
     const t = document.createElement('a');
     t.href = `https://whatsonchain.com/tx/${txid}`;
     t.target = '_blank';
@@ -64,6 +168,10 @@ const addChatMsg = o => {
     c.id = txid;
     c.dataset.paymail = paymail;
     c.onclick = coinTip;
+    const emojiSection = document.createElement('div');
+    emojiSection.className = 'emoji-section';
+    emojiSection.id = `${txid}_es`;
+    emojiSection.dataset.handle = paymail;
     const date = new Date(o.createdDateTime);
     const month = date.getMonth() + 1;
     const year = date.getFullYear().toString().slice(-2);
@@ -77,7 +185,27 @@ const addChatMsg = o => {
     row.appendChild(i);
     row.appendChild(m);
     row.appendChild(t);
-    row.appendChild(c)
+    row.appendChild(c);
+    row.appendChild(ei);
+    row.appendChild(emojiSection);
+    const theseReactions = reactions.filter(reaction => reaction.likedTxid === txid);
+    if (theseReactions.length) {
+        theseReactions.forEach(tr => {
+            const foundReaction = theseReactions.find(fr => fr.hexcode === tr.hexcode && fr.id !== tr.id);
+            if (foundReaction) {
+                const f = emojiExists(emojiSection, tr.hexcode);
+                if (f) {
+                    let count = f.innerText.slice(-1);
+                    count++;
+                    f.innerText = `${tr.emoji} ${count}`;
+                } else {
+                    emojiSection.appendChild(addReaction(tr.emoji, tr.hexcode));
+                }
+            } else {
+                emojiSection.appendChild(addReaction(tr.emoji, tr.hexcode));
+            }
+        })
+    }
     chatCon.appendChild(row);
     return row;
 }
@@ -116,9 +244,10 @@ const postChat = async() => {
         createdDateTime: new Date()
     }
     addChatMsg(obj);
-    chat(obj.text);
+    chat(obj.text, chatChannel);
     chatInput.value = '';
     section.scrollIntoView(false);
+    chatSound.play();
 }
 const protocol = location.protocol.includes('https') ? 'wss' : 'ws';
 const host = location.host.includes('localhost') ? `${location.hostname}:7777` : location.hostname;

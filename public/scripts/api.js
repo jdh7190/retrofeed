@@ -21,6 +21,14 @@ const getMyLikes = async handle => {
     const res = await r.json();
     return res;
 }
+const getChatReactions = async createdDateTime => {
+    const r = await fetch(`/chatReactions`, {
+        method: 'post',
+        body: JSON.stringify({ createdDateTime })
+    });
+    const res = await r.json();
+    return res;
+}
 const bsvPrice = async set => {
     const res = await fetch(`https://api.whatsonchain.com/v1/bsv/main/exchangerate`);
     const jres = await res.json();

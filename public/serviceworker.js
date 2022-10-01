@@ -1,6 +1,6 @@
-var CACHE_NAME = 'v0.10';
+var CACHE_NAME = 'v0.12';
 var urlsToCache = [
-  '/index.html',
+  /* '/index.html',
   '/manifest.json',
   '/info/index.html',
   '/profile/index.html',
@@ -15,6 +15,8 @@ var urlsToCache = [
   '/scripts/interactions.js',
   '/scripts/like.js',
   '/scripts/message.js',
+  '/scripts/picmo.min.js',
+  '/scripts/popup-picker.min.js',
   '/scripts/post.js',
   '/scripts/profile.js',
   '/scripts/readability.js',
@@ -30,6 +32,9 @@ var urlsToCache = [
   '/styles/tx.css',
   '/assets/images/back.png',
   '/assets/images/back.svg',
+  '/assets/images/chat.png',
+  '/assets/images/emoji-reaction.svg',
+  '/assets/images/feed.png',
   '/assets/images/hc_icon.png',
   '/assets/images/profile.svg',
   '/assets/images/question_block_32.png',
@@ -37,9 +42,8 @@ var urlsToCache = [
   '/assets/sounds/heartpiece.wav',
   '/assets/sounds/nes_coin.wav',
   '/assets/sounds/get_heart.wav',
-  '/assets/images/userprofile.png',
-  '/assets/images/chat.png',
-  '/assets/images/feed.png'
+  '/assets/sounds/pickupCoin.wav',
+  '/assets/images/userprofile.png' */
 ]
 self.addEventListener('install', event => {
   event.waitUntil(
