@@ -255,7 +255,7 @@ app.get('/getChats', async(req, res) => {
         const stmt = `SELECT chats.txid, text, chats.handle, username, users.avatarURL as icon, channel, chats.createdDateTime FROM retro.chats
             join retro.users on users.handle = chats.handle
         where encrypted = 0
-        ${c ? `and channel = '${c}'` : ''}
+        ${c ? `and channel = '${c}'` : 'and channel = ""'}
         order by chats.createdDateTime desc LIMIT 50`;
         const r = await sqlDB.sqlPromise(stmt, 'Failed to query chats.', '', pool);
         res.send(r);
