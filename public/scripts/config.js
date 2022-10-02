@@ -10,7 +10,7 @@ const TEST_PUBLIC_ENCRYPTION_KEY = '023c302b01e42c6f6e7cd8811c3a7065b0c2579845b1
 const PROD_PUBLIC_ENCRYPTION_KEY = '';
 const api = 'whatsonchain';
 const trustlist = [
-    'ce8629aa37a1777d6aa64d0d33cd739fd4e231dc85cfe2f9368473ab09078b78_o1',
+    'ce8629aa37a1777d6aa64d0d33cd739fd4e231dc85cfe2f9368473ab09078b78',
     '352d3f68aeac4b912bc31f24c98d171229f99137b97a26824aeb62d32f774c2c',
     'cdea2c203af755cd9477ca310c61021abaafc135a21d8f93b8ebfc6ca5f95712',
 ];

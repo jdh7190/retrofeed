@@ -236,6 +236,35 @@ const chat = async(msg, channel, encrypt) => {
     console.log({r});
 }
 const postChat = async() => {
+    const cmd = chatInput.value.toLowerCase();
+    if (cmd === '/profile' || cmd === '/me') {
+        location.href = '/profile';
+        return;
+    }
+    if (cmd === '/help' || cmd === 'info') {
+        location.href = '/info';
+        return;
+    }
+    if (cmd === '/home') {
+        location.href = '/';
+        return;
+    }
+    if (cmd === '/back' || cmd === 'back' || cmd === 'cd..' || cmd === 'cd ..') {
+        location.href = '/chat';
+        return;
+    }
+    if (cmd.startsWith('/join') || cmd.startsWith('/j') || cmd.startsWith('cd ')) {
+        const [c, channel] = cmd.split(' ');
+        if (!channel) {
+            alert('Please specify a channel.');
+        }
+        if (channel) {
+            const url = new URL(location.href);
+            url.searchParams.set('c', channel);
+            location.href = url.href;
+        }
+        return;
+    }
     const obj = {
         icon: localStorage.icon,
         paymail: localStorage.paymail,

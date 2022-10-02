@@ -70,9 +70,6 @@ p {
 .items {
 
 }
-.details {
-    display: none;
-}
 .icon {
     width: 24px;
     height: 24px;
@@ -136,8 +133,9 @@ p {
     width: 40px;
 }
 .details {
+    display: none;
     margin-top: 20px;
-    font-size: 8px;
+    font-size: 22px;
 }
 .bottom-section {
     position: fixed;

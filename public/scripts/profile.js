@@ -25,7 +25,7 @@ const imageHelper = (metadata, origin) => {
     img.className = 'icon';
     if (metadata?.image) {
         if (metadata.image === '_o1') {
-            img.src = `https://mornin.run/${origin}/img.png`;
+            img.src = `https://berry2.relayx.com/${origin.slice(0,64)}_o1`;
             return img;
         }
         img.src = `data:${metadata.image.mediaType};base64, ${metadata.image.base64Data}`;
