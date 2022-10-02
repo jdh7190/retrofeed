@@ -241,7 +241,7 @@ const postChat = async() => {
         location.href = '/profile';
         return;
     }
-    if (cmd === '/help' || cmd === 'info') {
+    if (cmd === '/help' || cmd === '/info') {
         location.href = '/info';
         return;
     }
