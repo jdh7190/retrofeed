@@ -218,6 +218,7 @@ const chat = async(msg, channel, encrypt) => {
         channel = 'osg_enc';
     }
     p.addText(msg);
+    p.type = 'message';
     p.addMapData('paymail', localStorage.paymail);
     if (channel) {
         p.addMapData('context', 'channel');
@@ -233,7 +234,7 @@ const chat = async(msg, channel, encrypt) => {
         encrypted: encryp === true ? 1 : 0,
         channel: channel || ''
     });
-    console.log({r});
+    return r;
 }
 const postChat = async() => {
     const cmd = chatInput.value.toLowerCase();
@@ -249,7 +250,11 @@ const postChat = async() => {
         location.href = '/';
         return;
     }
-    if (cmd === '/back' || cmd === 'back' || cmd === 'cd..' || cmd === 'cd ..') {
+    if (cmd === '/back' || cmd === 'back') {
+        history.back();
+        return;
+    }
+    if (cmd === 'cd..' || cmd === 'cd ..') {
         location.href = '/chat';
         return;
     }
@@ -273,7 +278,7 @@ const postChat = async() => {
         createdDateTime: new Date()
     }
     addChatMsg(obj);
-    chat(obj.text, chatChannel);
+    chat(obj.text, chatChannel).then(res => { console.log(res) });
     chatInput.value = '';
     section.scrollIntoView(false);
     chatSound.play();
