@@ -288,7 +288,24 @@ const protocol = location.protocol.includes('https') ? 'wss' : 'ws';
 const host = location.host.includes('localhost') ? `${location.hostname}:7777` : location.hostname;
 const WS_URL = `${protocol}://${location.host}`;
 const ws = new WebSocket(`${protocol}://${host}/ws`);
-ws.onopen = e => { console.log(`OPENED`, e) }
+var timerID = 0;
+const keepAlive = () => {
+    const timeout = 10000;
+    if (ws.readyState === ws.OPEN) {
+        ws.send('');
+    }
+    timerID = setTimeout(keepAlive, timeout);
+    console.log({timerID})
+}
+const cancelKeepAlive = () => {
+    if (timerID) {
+        clearTimeout(timerID);
+    }
+}
+ws.onopen = e => {
+    console.log(`OPENED`, e);
+    keepAlive();
+}
 ws.onmessage = async e => {
     console.log(`MESSAGE`, e);
     const str = await e.data.text()
@@ -303,7 +320,9 @@ ws.onerror = e => {
     console.log(`WS ERROR`, e);
 }
 ws.onclose = e => {
+    console.log(`Closing...`, e);
     if (e.wasClean) {
         console.log(e.code, e.reason);
     }
+    cancelKeepAlive();
 }
