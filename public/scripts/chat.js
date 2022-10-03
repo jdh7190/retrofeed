@@ -34,6 +34,11 @@ document.addEventListener("DOMContentLoaded", e => {
 const getChats = async() => {
     const q = chatChannel ? `/getChats/?c=${chatChannel}` : '/getChats'
     const chats = await (await fetch(q)).json();
+    /* console.log(chats)
+    const handles = chats.map(c => c.handle);
+    const handlesSet = new Set(handles);
+    const setOfHandles = Array.from(handlesSet);
+    console.log(setOfHandles) */
     if (chats?.length) {
         const idx = chats.length - 1;
         reactions = await getChatReactions(chats[idx].createdDateTime);
@@ -311,9 +316,11 @@ ws.onmessage = async e => {
     const str = await e.data.text()
     const payload = JSON.parse(str);
     if (payload.handle !== localStorage.paymail.split('@')[0]) {
-        addChatMsg(payload);
-        section.scrollIntoView(false);
-        chatSound.play();
+        if (chatChannel === payload.channel) {
+            addChatMsg(payload);
+            section.scrollIntoView(false);
+            chatSound.play();
+        }
     }
 }
 ws.onerror = e => {
