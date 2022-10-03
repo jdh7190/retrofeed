@@ -188,6 +188,10 @@ i.fa-bitcoin {
     width: 24px;
     height: 24px;
     cursor: pointer;
+    border-radius: 25%;
+}
+.emoji-reaction:hover {
+    background-color: grey;
 }
 .custom-emoji {
     width: 24px;
