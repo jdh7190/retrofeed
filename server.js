@@ -80,7 +80,8 @@ const bPostIdx = async payload => {
     try {
         const { content, txid, rawtx, handle, image } = payload;
         const flds = ['content', 'txid', 'rawtx', 'handle', 'imgs'];
-        const vls = [content, txid, rawtx, handle, image || '']
+        const contentText = helpers.replaceAll(content, "'", "''");
+        const vls = [contentText, txid, rawtx, handle, image || '']
         const stmt = sqlDB.insert('posts', flds, vls, true);
         const r = await sqlDB.sqlPromise(stmt, 'Failed to insert bPost.', '', pool);
         return r;
