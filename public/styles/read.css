@@ -1,3 +1,7 @@
+@font-face {
+    font-family: 'SMT';
+    src: url('../assets/fonts/ndsbios.ttf') format('truetype')
+}
 img {
     max-width: 100%;
     height: auto;
@@ -12,6 +16,8 @@ body {
     padding: 10px;
     background-color: #212529;
     color: #e9e4ee;
+    font-family: 'SMT';
+    font-size: 22px;
 }
 h1 {
     line-height: 1.25em;
@@ -19,6 +25,7 @@ h1 {
 }
 h3 {
     text-align: center;
+    letter-spacing: 1.6px;
 }
 .header {
     line-height: 1.48em;
@@ -32,7 +39,7 @@ h3 {
 }
 .byline {
     text-align: center;
-    font-size: 16px;
+    font-size: 18px;
     font-style: italic;
 }
 p {

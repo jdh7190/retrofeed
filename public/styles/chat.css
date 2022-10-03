@@ -7,12 +7,13 @@
     width: 100%;
 }
 .title {
+    font-size: 28px;
     position: absolute;
     top: 20px;
     letter-spacing: 1.5px;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: #0000EE;
+    color: #0951FD;
 }
 .back {
     position: absolute;
@@ -169,7 +170,7 @@ i.fa-bitcoin {
 .urlFormat {
     overflow: hidden;
     text-overflow: ellipsis;
-    color: #0000EE;
+    color: #0951FD;
 }
 .word-wrap {
     color:#0000EE;

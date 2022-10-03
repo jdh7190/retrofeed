@@ -8,7 +8,7 @@ body {
     color: #e9e4ee;
 }
 a {
-    color: #0000EE;
+    color: #0951FD;
 }
 .page {
     margin: 0 auto;
@@ -27,12 +27,13 @@ a {
     transform: translate(-50%, -50%);
 }
 .title {
+    font-size: 28px;
     position: absolute;
     letter-spacing: 1.5px;
     top: 7px;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: #0000EE;
+    color: #0951FD;
 }
 p {
     /* text-align: center; */

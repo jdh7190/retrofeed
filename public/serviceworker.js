@@ -1,4 +1,4 @@
-var CACHE_NAME = 'v0.16';
+var CACHE_NAME = 'v0.17';
 var urlsToCache = [
   '/index.html',
   '/manifest.json',
@@ -38,12 +38,13 @@ var urlsToCache = [
   '/assets/images/hc_icon.png',
   '/assets/images/profile.svg',
   '/assets/images/question_block_32.png',
+  '/assets/images/userprofile.png',
   '/assets/images/videoplay.png',
   '/assets/sounds/heartpiece.wav',
   '/assets/sounds/nes_coin.wav',
   '/assets/sounds/get_heart.wav',
   '/assets/sounds/pickupCoin.wav',
-  '/assets/images/userprofile.png'
+  '/assets/fonts/ndsbios.ttf'
 ]
 self.addEventListener('install', event => {
   event.waitUntil(

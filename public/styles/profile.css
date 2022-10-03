@@ -33,12 +33,13 @@ p {
     width: 100%;
 }
 .title {
+    font-size: 28px;
     position: absolute;
     letter-spacing: 1.5px;
     top: 20px;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: #0000EE;
+    color: #0951FD;
 }
 .prof {
     border-radius: 50%;
@@ -144,5 +145,5 @@ p {
     transform: translate(-50%, 0);
 }
 a:visited {
-    color: #0000EE;
+    color: #0951FD;
 }
