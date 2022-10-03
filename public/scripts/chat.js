@@ -50,6 +50,7 @@ const getChats = async() => {
 }
 const urlParams = new URLSearchParams(location.search);
 const chatChannel = urlParams.get('c') || '';
+if (chatChannel) { document.getElementById('chat-title').innerText = chatChannel }
 var encryp = false;
 getChats();
 async function coinTip() {
