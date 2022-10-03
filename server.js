@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const sqlDB = require('./sqlDB');
+const helpers = require('./helpers');
 const cheerio = require('cheerio');
 const fetch = require('node-fetch');
 const { Readability } = require('@mozilla/readability');
@@ -92,7 +93,8 @@ const chatIdx = async payload => {
     try {
         const { text, txid, rawtx, handle, username, encrypted, channel } = payload;
         const flds = ['text', 'txid', 'rawtx', 'handle', 'username', 'encrypted', 'channel'];
-        const vls = [text, txid, rawtx, handle, username, encrypted, channel]
+        const contentText = helpers.replaceAll(text, "'", "''");
+        const vls = [contentText, txid, rawtx, handle, username, encrypted, channel]
         const stmt = sqlDB.insert('chats', flds, vls, true);
         const r = await sqlDB.sqlPromise(stmt, 'Failed to insert bPost.', '', pool);
         if (r?.insertId) {
