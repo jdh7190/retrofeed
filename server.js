@@ -347,7 +347,7 @@ app.get('/getPost', async(req, res) => {
 app.post('/myLikes', async(req, res) => {
     const { handle, createdDateTime } = req.body;
     try {
-        const stmt = `SELECT likedTxid from likes where handle = '${handle}' and createdDateTime >= '${createdDateTime}'`;
+        const stmt = `SELECT likedTxid from likes where handle = '${handle}' and createdDateTime >= '${createdDateTime}' and hexcode = '2665'`;
         const r = await sqlDB.sqlPromise(stmt, `Failed to query likes for ${handle}`, 'No likes found.', pool);
         res.send(r);
     } catch(e) {
