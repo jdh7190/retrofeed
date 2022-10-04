@@ -95,7 +95,11 @@ const chatIdx = async payload => {
         const { text, txid, rawtx, handle, username, encrypted, channel, app, signingAddress, signature } = payload;
         const flds = ['text', 'txid', 'rawtx', 'handle', 'username', 'encrypted', 'channel', 'app', 'signingAddress', 'signature'];
         const contentText = helpers.replaceAll(text, "'", "''");
-        const vls = [contentText, txid, rawtx, handle, helpers.replaceAll(username, "'", "''") || '', encrypted, channel, app || '', signingAddress || '', signature || '']
+        let user = '';
+        if (username) {
+            user = helpers.replaceAll(username, "'", "''")
+        }
+        const vls = [contentText, txid, rawtx, handle, user || '', encrypted, channel, app || '', signingAddress || '', signature || '']
         const stmt = sqlDB.insert('chats', flds, vls, true);
         const r = await sqlDB.sqlPromise(stmt, 'Failed to insert bPost.', '', pool);
         if (r?.insertId && r.affectedRows > 0) {
@@ -143,6 +147,55 @@ const tipTxIdx = async payload => {
         return {error:e}
     }
 }
+const bsvPrice = async() => {
+    const res = await fetch(`https://api.whatsonchain.com/v1/bsv/main/exchangerate`);
+    const jres = await res.json();
+    return jres.rate;
+}
+app.post('/priceRequest', async(req, res) => {
+    const { channel, action, content, hcauth, encrypted } = req.body;
+    const handle = 'morninrun';
+    const morninHCAuth = 'fdcb16edcc87b869a3d9d0d22d476123149572ca275f40415a7b1d9663f06813'; // morninrun hcauth
+    const p = await bsvPrice();
+    const text = `BSV Price: $${p.slice(0,5)}`
+    let pay = [
+        '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut',
+        text,
+        'text/markdown',
+        'UTF-8',
+        '|',
+        '1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5',
+        'SET',
+        'app',
+        'retrofeed.me',
+        'type',
+        'message',
+        'paymail',
+        'morninrun@handcash.io'
+    ], hexarr = [];
+    pay.forEach(p => { hexarr.push(Buffer.from(p).toString('hex')) });
+    if (action === 'chat') {
+        try {
+            const cloudAccount = handCashConnect.getAccountFromAuthToken(morninHCAuth);
+            const paymentParameters = { appAction: action, description: 'Price Request 📰📈' }
+            paymentParameters.attachment = { format: 'hexArray', value: hexarr }
+            const paymentResult = await cloudAccount.wallet.pay(paymentParameters);
+            if (paymentResult.transactionId) {
+                switch(action) {
+                    case 'chat':
+                        await chatIdx({ text, handle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, username: `THE MORNIN' RUN`, encrypted, channel })
+                        break;
+                    default:
+                        break;
+                }
+            }
+            res.send({ paymentResult });
+        } catch(e) {
+            console.log(e);
+            res.send({error:e})
+        }
+    }
+})
 app.post('/hcPost', async(req, res) => {
     const { payload, action, hcauth, content, handle } = req.body;
     let description, likePayload, tipPayload, chatPayload;
@@ -244,7 +297,7 @@ app.get('/getPosts', async(req, res) => {
         const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, imgs FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
             join retro.users on users.handle = posts.handle
-        group by posts.id order by ${orderBy} desc`;
+        group by posts.id order by ${orderBy} desc LIMIT 50`;
         const r = await sqlDB.sqlPromise(stmt, 'Failed to register user.', '', pool);
         res.send(r);
     } catch (e) {
