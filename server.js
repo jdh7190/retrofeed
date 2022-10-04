@@ -95,7 +95,7 @@ const chatIdx = async payload => {
         const { text, txid, rawtx, handle, username, encrypted, channel, app, signingAddress, signature } = payload;
         const flds = ['text', 'txid', 'rawtx', 'handle', 'username', 'encrypted', 'channel', 'app', 'signingAddress', 'signature'];
         const contentText = helpers.replaceAll(text, "'", "''");
-        const vls = [contentText, txid, rawtx, handle, username || '', encrypted, channel, app || '', signingAddress || '', signature || '']
+        const vls = [contentText, txid, rawtx, handle, helpers.replaceAll(username, "'", "''") || '', encrypted, channel, app || '', signingAddress || '', signature || '']
         const stmt = sqlDB.insert('chats', flds, vls, true);
         const r = await sqlDB.sqlPromise(stmt, 'Failed to insert bPost.', '', pool);
         if (r?.insertId && r.affectedRows > 0) {
