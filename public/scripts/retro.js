@@ -130,8 +130,9 @@ const getRetroPosts = async selOrder => {
     document.getElementById('message-container').innerHTML = "";
     const posts = await getPosts(selOrder);
     console.log({posts})
+    const earliestPostCreatedDateTime = posts[posts.length-1].createdDateTime;
     if (localStorage?.paymail) {
-        myLikes = await getMyLikes(localStorage?.paymail.split('@')[0]);
+        myLikes = await getMyLikes(localStorage?.paymail.split('@')[0], earliestPostCreatedDateTime);
         console.log(myLikes)
     }
     for (let i = 0; i < posts.length; i++) {

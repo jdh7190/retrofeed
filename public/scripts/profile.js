@@ -50,8 +50,13 @@ const inventoryManager = async() => {
                 text: name,
                 amount: jig?.amount || 1
             }
-            const img = imageHelper(jig.constructor.metadata, jig.constructor.origin);
-            item.img = img;
+            if (jig?.metadata?.image) {
+                const img = imageHelper(jig.metadata, jig.origin);
+                item.img = img;
+            } else {
+                const img = imageHelper(jig.constructor.metadata, jig.constructor.origin);
+                item.img = img;
+            }
             createItem(item);
         }
     } else {

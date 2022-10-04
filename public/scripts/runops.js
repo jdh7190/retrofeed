@@ -2,6 +2,7 @@ const { asm } = Run.extra;
 const initRun = () => {
     const run = new Run({
         owner: localStorage.ownerKey,
+        purse: 'L2ASAwmxR72tbBTTrtR87sjpXeRiAgTkrxa1G8GJuCBKGRGwgiQx',
         api,
         timeout: 30000
     });
@@ -13,7 +14,19 @@ class P2PKLock {
   script() { return asm(`${this.pubkey} OP_CHECKSIG`) }
   domain() { return 74 }
 }
-/* class retroFeedWallet {
+P2PKLock.deps = { asm }
+const deployClass = async() => {
+  const run = initRun();
+  const tx = new Run.Transaction();
+  tx.update(() => {
+    run.deploy(P2PKLock);
+  })
+  const raw = await tx.export();
+  console.log(raw);
+  const txid = await tx.publish();
+  console.log(txid)
+}
+class retroFeedWallet {
   constructor(publicKey) {
       if (!publicKey) throw `Must specify public key!`;
       this.publicKey = publicKey;
@@ -36,7 +49,6 @@ class P2PKLock {
       return tx.toString();
   }
 }
-P2PKLock.deps = { asm }
 const test = async() => {
   const run = initRun();
   const utxos = await run.blockchain.utxos(run.owner.address);
@@ -53,4 +65,4 @@ const test = async() => {
   })
   const raw = await tx.export();
   console.log(raw)
-} */
+}

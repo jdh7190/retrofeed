@@ -62,7 +62,7 @@ app.post('/hcaccount', async(req, res) => {
             const b64Enc = Buffer.from(enc).toString('base64');
             publicProfile.encryptedKey = b64Enc; */
             const flds = ['paymail', 'publicKey', 'ownerAddress', 'handle', 'avatarURL', 'name'];
-            const vls = [publicProfile.paymail, bsv.PublicKey.fromHex(publicKey).toHex(), address, publicProfile.handle, publicProfile.avatarUrl, publicProfile.displayName];
+            const vls = [publicProfile.paymail, bsv.PublicKey.fromHex(publicKey).toHex(), address, publicProfile.handle, publicProfile.avatarUrl, helpers.replaceAll(publicProfile.displayName, "'", "''")];
             const stmt = sqlDB.insert('users', flds, vls, true);
             const r = await sqlDB.sqlPromise(stmt, 'Failed to register user.', '', pool);
             if (r.affectedRows > 0) { console.log(`Registered user ${publicProfile.paymail}!`) }
@@ -92,15 +92,15 @@ const bPostIdx = async payload => {
 }
 const chatIdx = async payload => {
     try {
-        const { text, txid, rawtx, handle, username, encrypted, channel } = payload;
-        const flds = ['text', 'txid', 'rawtx', 'handle', 'username', 'encrypted', 'channel'];
+        const { text, txid, rawtx, handle, username, encrypted, channel, app, signingAddress, signature } = payload;
+        const flds = ['text', 'txid', 'rawtx', 'handle', 'username', 'encrypted', 'channel', 'app', 'signingAddress', 'signature'];
         const contentText = helpers.replaceAll(text, "'", "''");
-        const vls = [contentText, txid, rawtx, handle, username, encrypted, channel]
+        const vls = [contentText, txid, rawtx, handle, username || '', encrypted, channel, app || '', signingAddress || '', signature || '']
         const stmt = sqlDB.insert('chats', flds, vls, true);
         const r = await sqlDB.sqlPromise(stmt, 'Failed to insert bPost.', '', pool);
-        if (r?.insertId) {
-            const selectStmt = `SELECT chats.txid, chats.text, chats.handle, chats.createdDateTime, channel, encrypted, users.avatarURL as icon, users.paymail FROM retro.chats
-                join retro.users on users.handle = chats.handle
+        if (r?.insertId && r.affectedRows > 0) {
+            const selectStmt = `SELECT chats.txid, chats.text, chats.handle, chats.app, chats.createdDateTime, channel, encrypted, users.avatarURL as icon, users.paymail FROM retro.chats
+                left outer join retro.users on users.handle = chats.handle OR users.paymail = chats.handle
             where chats.id = ${r.insertId}
             group by handle`;
             const chat = await sqlDB.sqlPromise(selectStmt, 'Failed to get newly inserted chat.', '', pool);
@@ -122,7 +122,7 @@ const likeTxIdx = async payload => {
     try {
         const { likedTxid, txid, rawtx, handle, likedHandle, emoji, hexcode } = payload;
         const flds = ['likedTxid', 'txid', 'rawtx', 'handle', 'likedHandle', 'emoji', 'hexcode'];
-        const vls = [likedTxid, txid, rawtx, handle, likedHandle, emoji, hexcode]
+        const vls = [likedTxid, txid, rawtx, handle || '', likedHandle || '', emoji || '', hexcode || '']
         const stmt = sqlDB.insert('likes', flds, vls, true);
         const r = await sqlDB.sqlPromise(stmt, 'Failed to insert like.', '', pool);
         return r;
@@ -256,7 +256,7 @@ app.get('/getChats', async(req, res) => {
     const { c } = req.query;
     try {
         const stmt = `SELECT chats.txid, text, chats.handle, username, users.avatarURL as icon, channel, chats.createdDateTime FROM retro.chats
-            join retro.users on users.handle = chats.handle
+            left outer join retro.users on users.handle = chats.handle OR users.paymail = chats.handle
         where encrypted = 0
         ${c ? `and channel = '${c}'` : 'and channel = ""'}
         order by chats.createdDateTime desc LIMIT 50`;
@@ -267,6 +267,16 @@ app.get('/getChats', async(req, res) => {
         res.send({error:'Failed to fetch from database.'});
     }
 });
+app.get('/channels', async(req, res) => {
+    try {
+        const stmt = `SELECT channel FROM retro.chats where channel != '' group by channel`;
+        const r = await sqlDB.sqlPromise(stmt, 'Failed to query channels', '', pool);
+        res.send(r);
+    } catch(e) {
+        console.log(e);
+        res.send({error:e})
+    }
+})
 app.get('/getPost', async(req, res) => {
     try {
         const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, imgs FROM retro.posts
@@ -281,10 +291,10 @@ app.get('/getPost', async(req, res) => {
         res.send({error:'Failed to fetch from database.'});
     }
 });
-app.get('/myLikes', async(req, res) => {
-    const { handle } = req.query;
+app.post('/myLikes', async(req, res) => {
+    const { handle, createdDateTime } = req.body;
     try {
-        const stmt = `SELECT likedTxid from likes where handle = '${handle}'`;
+        const stmt = `SELECT likedTxid from likes where handle = '${handle}' and createdDateTime >= '${createdDateTime}'`;
         const r = await sqlDB.sqlPromise(stmt, `Failed to query likes for ${handle}`, 'No likes found.', pool);
         res.send(r);
     } catch(e) {
@@ -343,10 +353,21 @@ app.post('/bPost', async(req, res) => {
     }
 });
 app.post('/likeTx', async(req, res) => {
-    console.log(req.body)
+    const {txid} = req.body;
     try {
-        /* const r = await bPostIdx(req.body);
-        if (r.affectedRows > 0) { console.log(`Inserted ${txid}!`) } */
+        const r = await likeTxIdx(req.body);
+        if (r.affectedRows > 0) { console.log(`Inserted like txid: ${txid}!`) }
+        res.sendStatus(200);
+    } catch(e) {
+        console.log({e});
+        res.send({error: e});
+    }
+});
+app.post('/chatTx', async(req, res) => {
+    const {txid} = req.body;
+    try {
+        const r = await chatIdx(req.body);
+        if (r.affectedRows > 0) { console.log(`Inserted chat txid: ${txid}!`) }
         res.sendStatus(200);
     } catch(e) {
         console.log({e});

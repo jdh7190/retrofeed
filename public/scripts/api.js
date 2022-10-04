@@ -16,8 +16,14 @@ const getPosts = async order => {
     const res = await (await fetch(`/getPosts/?order=${order}`)).json();
     return res;
 }
-const getMyLikes = async handle => {
-    const r = await fetch(`/myLikes?handle=${handle}`);
+const getMyLikes = async (handle, createdDateTime) => {
+    const r = await fetch(`/myLikes`, {
+        method: 'post',
+        body: JSON.stringify({
+            handle,
+            createdDateTime
+        })
+    });
     const res = await r.json();
     return res;
 }

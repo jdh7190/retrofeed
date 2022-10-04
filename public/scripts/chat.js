@@ -30,20 +30,22 @@ pickupCoin.src = '../assets/sounds/pickupCoin.wav';
 document.addEventListener("DOMContentLoaded", e => {
     chatSound.volume = 0.50;
     pickupCoin.volume = 0.25;
-})
+});
+var setOfHandles = [];
 const getChats = async() => {
     const q = chatChannel ? `/getChats/?c=${chatChannel}` : '/getChats'
     const chats = await (await fetch(q)).json();
-    /* console.log(chats)
-    const handles = chats.map(c => c.handle);
-    const handlesSet = new Set(handles);
-    const setOfHandles = Array.from(handlesSet);
-    console.log(setOfHandles) */
+    console.log(chats)
+    const handlesSet = new Set(chats.map(c => {
+        return !c?.handle.includes('@') ? `${c.handle}@handcash.io` : c.handle;
+    }));
+    setOfHandles = Array.from(handlesSet);
+    console.log(setOfHandles)
     if (chats?.length) {
         const idx = chats.length - 1;
         reactions = await getChatReactions(chats[idx].createdDateTime);
         for (let i = idx; i > -1; i--) {
-            chats[i].paymail = `${chats[i].handle}@handcash.io`;
+            chats[i].paymail = chats[i].paymail || chats[i].handle;
             if (chats[i].encrypted) {
                 const m = decryptChatMsg(chats[i].text);
                 chats[i].text = m;
@@ -148,25 +150,51 @@ const emojiExists = (parent, hexcode) => {
     const found = arr.find(a => a.id === hexcode);
     return found;
 }
-const addChatMsg = o => {
-    const { icon, paymail, username, text, txid } = o;
+const addEphemeralMsg = text => {
     const row = document.createElement('div');
     row.className = 'row';
     const i = document.createElement('img');
-    i.src = icon;
+    i.src = '../assets/images/icon_192_noback.png';
+    i.className = 'chat-icon';
+    const m = document.createElement('div');
+    m.className = 'm';
+    m.innerText = text || `COMMANDS
+
+Channels:
+/list - display available channels on retrofeed
+/join #channel - join channel by name
+/j #channel - join channel by name
+cd #channel - join channel by name
+/back - navigate back in browser
+cd.. OR cd .. - navigate to /chat page
+
+Others:
+/help - display this message`;
+    row.appendChild(i);
+    row.appendChild(m);
+    chatCon.appendChild(row);
+    return row;
+}
+const addChatMsg = o => {
+    const { icon, paymail, text, txid, handle } = o;
+    const row = document.createElement('div');
+    row.className = 'row';
+    const i = document.createElement('img');
+    i.src = icon || '../assets/images/icon_192_noback.png';
     i.className = 'chat-icon';
     const ei = document.createElement('img');
     ei.src = '../assets/images/emoji-reaction.svg';
     ei.className = 'emoji-reaction';
     ei.onclick = pickEmoji;
     ei.id = txid;
-    ei.dataset.handle = paymail;
+    const userHandle = paymail !== null && paymail !== undefined ? paymail : handle;
+    ei.dataset.handle = userHandle;
     const m = document.createElement('div');
     m.className = 'm';
     const content = text.replace(urlRegex, url => { return `<a class="word-wrap" href='${url}' rel="noreferrer" target="_blank">${url}</a>` })
-    m.innerHTML = `${paymail}: ${content}`;
+    m.innerHTML = `${userHandle}: ${content}`;
     const t = document.createElement('a');
-    t.href = `https://whatsonchain.com/tx/${txid}`;
+    t.href = txid ? `https://whatsonchain.com/tx/${txid}` : '/chat';
     t.target = '_blank';
     t.className = 't';
     const c = document.createElement('i');
@@ -177,7 +205,7 @@ const addChatMsg = o => {
     const emojiSection = document.createElement('div');
     emojiSection.className = 'emoji-section';
     emojiSection.id = `${txid}_es`;
-    emojiSection.dataset.handle = paymail;
+    emojiSection.dataset.handle = userHandle;
     const date = new Date(o.createdDateTime);
     const month = date.getMonth() + 1;
     const year = date.getFullYear().toString().slice(-2);
@@ -244,11 +272,49 @@ const chat = async(msg, channel, encrypt) => {
 }
 const postChat = async() => {
     const cmd = chatInput.value.toLowerCase();
+    if (cmd === '/ls' || cmd === 'ls' || cmd === '/list') {
+        const c = await (await fetch(`/channels`)).json();
+        const list = c.map(c => c.channel);
+        console.log(list);
+        let text = `Available Channels on retrofeed:
+
+`;
+        list.forEach(l => {
+            text += `#${l}
+`
+        });
+        console.log(text);
+        addEphemeralMsg(text);
+        chatInput.value = '';
+        section.scrollIntoView(false);
+        return;
+    }
+    /* if (cmd === '/price') {
+        const p = await bsvPrice();
+        const obj = {
+            text: `BSV Price: $${p.rate.slice(0,5)}`,
+            paymail: 'retro@simply.cash',
+            icon: '../assets/images/icon_192_noback.png',
+            createdDateTime: Date.now()
+        }
+        addChatMsg(obj)
+        chat(obj.text, chatChannel).then(res => { console.log(res) });
+        chatInput.value = '';
+        section.scrollIntoView(false);
+        chatSound.play();
+        return;
+    } */
+    if (cmd === '/help') {
+        addEphemeralMsg();
+        chatInput.value = '';
+        section.scrollIntoView(false);
+        return;
+    }
     if (cmd === '/profile' || cmd === '/me') {
         location.href = '/profile';
         return;
     }
-    if (cmd === '/help' || cmd === '/info') {
+    if (cmd === '/info') {
         location.href = '/info';
         return;
     }
