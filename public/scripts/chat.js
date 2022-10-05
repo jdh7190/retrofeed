@@ -272,38 +272,40 @@ const chat = async(msg, channel, encrypt) => {
 }
 const postChat = async() => {
     const cmd = chatInput.value.toLowerCase();
-    if (cmd === '/ls' || cmd === 'ls' || cmd === '/list') {
+    if (cmd === '/ls' || cmd === 'ls' || cmd === '/list' || cmd === '/l' || cmd === 'dir' || cmd === '/dir') {
         const c = await (await fetch(`/channels`)).json();
-        const list = c.map(c => c.channel);
-        console.log(list);
         let text = `Available Channels on retrofeed:
 
 `;
-        list.forEach(l => {
-            text += `#${l}
+        c.forEach(l => {
+            text += `#${l.channel} (${l.count})
 `
         });
-        console.log(text);
         addEphemeralMsg(text);
         chatInput.value = '';
         section.scrollIntoView(false);
         return;
     }
-    /* if (cmd === '/price') {
-        const p = await bsvPrice();
-        const obj = {
-            text: `BSV Price: $${p.rate.slice(0,5)}`,
-            paymail: 'retro@simply.cash',
-            icon: '../assets/images/icon_192_noback.png',
-            createdDateTime: Date.now()
+    if (cmd === '/price') {
+        const r = await fetch('/priceRequest', {
+            method: 'post',
+            body: JSON.stringify({
+                hcauth: localStorage.hcauth,
+                content: 'BSV',
+                action: 'chat',
+                channel: chatChannel,
+                encrypted: encryp === true ? 1 : 0
+            })
+        })
+        const res = await r.json();
+        console.log(res)
+        if (res) {
+            chatInput.value = '';
+            section.scrollIntoView(false);
+            chatSound.play();
         }
-        addChatMsg(obj)
-        chat(obj.text, chatChannel).then(res => { console.log(res) });
-        chatInput.value = '';
-        section.scrollIntoView(false);
-        chatSound.play();
         return;
-    } */
+    }
     if (cmd === '/help') {
         addEphemeralMsg();
         chatInput.value = '';
@@ -331,11 +333,14 @@ const postChat = async() => {
         return;
     }
     if (cmd.startsWith('/join') || cmd.startsWith('/j') || cmd.startsWith('cd ')) {
-        const [c, channel] = cmd.split(' ');
+        let [c, channel] = cmd.split(' ');
         if (!channel) {
             alert('Please specify a channel.');
         }
         if (channel) {
+            if (channel.startsWith('#')) {
+                channel = channel.substring(1);
+            }
             const url = new URL(location.href);
             url.searchParams.set('c', channel);
             location.href = url.href;

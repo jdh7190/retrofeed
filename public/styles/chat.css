@@ -160,6 +160,7 @@ i.fa-bitcoin {
     height: 40px;
     float: left;
     border-radius: 50%;
+    image-rendering: pixelated;
 }
 .chat-coin {
     left: 5px;

@@ -4,6 +4,8 @@ const sqlDB = require('./sqlDB');
 const helpers = require('./helpers');
 const cheerio = require('cheerio');
 const fetch = require('node-fetch');
+const bsv = require('bsv');
+const Message = require('bsv/message');
 const { Readability } = require('@mozilla/readability');
 const { HandCashConnect } = require('@handcash/handcash-connect');
 const handCashConnect = new HandCashConnect({appId: process.env.APP_ID, appSecret: process.env.APP_SECRET});
@@ -51,7 +53,6 @@ app.post('/hcaccount', async(req, res) => {
             const cloudAccount = handCashConnect.getAccountFromAuthToken(req.body.hcauth);
             let { publicProfile } = await cloudAccount.profile.getCurrentProfile();
             const { privateKey, publicKey } = await cloudAccount.profile.getEncryptionKeypair();
-            const bsv = require('bsv');
             const bsvPublicKey = bsv.PublicKey.fromHex(publicKey);
             const address = bsv.Address.fromPublicKey(bsvPublicKey).toString();
             publicProfile.privateKey = privateKey;
@@ -152,10 +153,28 @@ const bsvPrice = async() => {
     const jres = await res.json();
     return jres.rate;
 }
+const getAIPMessageBuffer = opReturn => {
+    const buffers = [];
+    if (opReturn[0].replace('0x', '') !== '6a') {
+      buffers.push(Buffer.from('6a', 'hex'));
+    }
+    opReturn.forEach((op) => { buffers.push(Buffer.from(op.replace('0x', ''), 'hex')) });
+    buffers.push(Buffer.from('|'));
+    return Buffer.concat([...buffers]);
+  }
+const signPayload = (key, payload) => {
+    const bsvPrivateKey = bsv.PrivateKey.fromWIF(key);
+    const msgbuf = getAIPMessageBuffer(payload);
+    const signature = Message(msgbuf).sign(bsvPrivateKey);
+    /* const v = Message.verify(msgbuf, '1GZ8kkztZbAuLr2Hq2Lk8mcuP8wKgcxP4J', signature);
+    console.log(v) */
+    return signature;
+}
 app.post('/priceRequest', async(req, res) => {
     const { channel, action, content, hcauth, encrypted } = req.body;
     const handle = 'morninrun';
-    const morninHCAuth = 'fdcb16edcc87b869a3d9d0d22d476123149572ca275f40415a7b1d9663f06813'; // morninrun hcauth
+    const morninPostingKey = 'L2bo8pabyHj94LmaPt95ZHwEQiffDFs4ZhsvAKBCVL8fj2PSM76Q';
+    const morninSigningAddress = '1GZ8kkztZbAuLr2Hq2Lk8mcuP8wKgcxP4J'
     const p = await bsvPrice();
     const text = `BSV Price: $${p.slice(0,5)}`
     let pay = [
@@ -172,11 +191,15 @@ app.post('/priceRequest', async(req, res) => {
         'message',
         'paymail',
         'morninrun@handcash.io'
-    ], hexarr = [];
+    ], hexarr = [], payhex = [];
+    if (channel) { pay = pay.concat('context', 'channel', 'channel', channel) }
+    pay.forEach(p => { payhex.push(Buffer.from(p).toString('hex')) });
+    const signature = signPayload(morninPostingKey, payhex);
+    pay = pay.concat(['|', '15PciHG22SNLQJXMoSUaWVi7WSqc7hCfva', 'BITCOIN_ECDSA', morninSigningAddress, signature]);
     pay.forEach(p => { hexarr.push(Buffer.from(p).toString('hex')) });
     if (action === 'chat') {
         try {
-            const cloudAccount = handCashConnect.getAccountFromAuthToken(morninHCAuth);
+            const cloudAccount = handCashConnect.getAccountFromAuthToken(hcauth);
             const paymentParameters = { appAction: action, description: 'Price Request 📰📈' }
             paymentParameters.attachment = { format: 'hexArray', value: hexarr }
             const paymentResult = await cloudAccount.wallet.pay(paymentParameters);
@@ -322,7 +345,10 @@ app.get('/getChats', async(req, res) => {
 });
 app.get('/channels', async(req, res) => {
     try {
-        const stmt = `SELECT channel FROM retro.chats where channel != '' group by channel`;
+        const stmt = `SELECT channel, count(chats.id) as count FROM retro.chats 
+            where channel != '' 
+            group by channel
+            order by count desc`;
         const r = await sqlDB.sqlPromise(stmt, 'Failed to query channels', '', pool);
         res.send(r);
     } catch(e) {
