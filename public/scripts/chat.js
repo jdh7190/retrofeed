@@ -177,7 +177,7 @@ Others:
 }
 const addChatMsg = o => {
     const { icon, paymail, text, txid, handle, blocktime, createdDateTime } = o;
-    const d = blocktime ? new Date(blocktime*1000).toISOString().slice(0, 19).replace('T', ' ') : createdDateTime;
+    const d = blocktime ? new Date(blocktime*1000).toLocaleString('en-US', {hourCycle: 'h23'}).slice(0, 19).replace('T', ' ') : createdDateTime;
     const row = document.createElement('div');
     row.className = 'row';
     const i = document.createElement('img');
