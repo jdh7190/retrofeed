@@ -267,7 +267,8 @@ const chat = async(msg, channel, encrypt) => {
         handle: localStorage.paymail.split('@')[0],
         username: localStorage.username,
         encrypted: encryp === true ? 1 : 0,
-        channel: channel || ''
+        channel: channel || '',
+        blocktime: Math.floor(Date.now() / 1000)
     });
     return r;
 }

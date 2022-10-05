@@ -285,8 +285,8 @@ app.post('/hcPost', async(req, res) => {
                     await likeTxIdx({ likedTxid, handle: req.body.handle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, emoji, likedHandle, hexcode });
                     break;
                 case 'chat':
-                    const { text, username, encrypted, channel } = chatPayload;
-                    await chatIdx({ text, handle: req.body.handle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, username, encrypted, channel })
+                    const { text, username, encrypted, channel, blocktime } = chatPayload;
+                    await chatIdx({ text, handle: req.body.handle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, username, encrypted, channel, blocktime })
                     break;
                 case 'tip':
                     const { tippedHandle, txid, handle, amount } = tipPayload;
@@ -336,7 +336,7 @@ app.get('/getChats', async(req, res) => {
             left outer join retro.users on users.handle = chats.handle OR users.paymail = chats.handle
         where encrypted = 0
         ${c ? `and channel = '${c}'` : 'and channel = ""'}
-        order by chats.createdDateTime desc LIMIT 50`;
+        order by chats.blocktime desc LIMIT 50`;
         const r = await sqlDB.sqlPromise(stmt, 'Failed to query chats.', '', pool);
         res.send(r);
     } catch (e) {
