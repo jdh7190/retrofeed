@@ -93,18 +93,19 @@ const bPostIdx = async payload => {
 }
 const chatIdx = async payload => {
     try {
-        const { text, txid, rawtx, handle, username, encrypted, channel, app, signingAddress, signature } = payload;
-        const flds = ['text', 'txid', 'rawtx', 'handle', 'username', 'encrypted', 'channel', 'app', 'signingAddress', 'signature'];
+        const { text, txid, rawtx, handle, username, encrypted, channel, app, signingAddress, signature, blocktime } = payload;
+        const flds = ['text', 'txid', 'rawtx', 'handle', 'username', 'encrypted', 'channel', 'app', 'signingAddress', 'signature', 'blocktime'];
         const contentText = helpers.replaceAll(text, "'", "''");
+        const insChannel = helpers.replaceAll(channel, "'", "''");
         let user = '';
         if (username) {
             user = helpers.replaceAll(username, "'", "''")
         }
-        const vls = [contentText, txid, rawtx, handle, user || '', encrypted, channel, app || '', signingAddress || '', signature || '']
+        const vls = [contentText, txid, rawtx, handle, user || '', encrypted, insChannel, app || '', signingAddress || '', signature || '', blocktime]
         const stmt = sqlDB.insert('chats', flds, vls, true);
         const r = await sqlDB.sqlPromise(stmt, 'Failed to insert bPost.', '', pool);
         if (r?.insertId && r.affectedRows > 0) {
-            const selectStmt = `SELECT chats.txid, chats.text, chats.handle, chats.app, chats.createdDateTime, channel, encrypted, users.avatarURL as icon, users.paymail FROM retro.chats
+            const selectStmt = `SELECT chats.txid, chats.text, chats.handle, chats.blocktime, chats.app, chats.createdDateTime, channel, encrypted, users.avatarURL as icon, users.paymail FROM retro.chats
                 left outer join retro.users on users.handle = chats.handle OR users.paymail = chats.handle
             where chats.id = ${r.insertId}
             group by handle`;
@@ -331,7 +332,7 @@ app.get('/getPosts', async(req, res) => {
 app.get('/getChats', async(req, res) => {
     const { c } = req.query;
     try {
-        const stmt = `SELECT chats.txid, text, chats.handle, username, users.avatarURL as icon, channel, chats.createdDateTime FROM retro.chats
+        const stmt = `SELECT chats.txid, text, chats.handle, chats.blocktime, username, users.avatarURL as icon, channel, chats.createdDateTime FROM retro.chats
             left outer join retro.users on users.handle = chats.handle OR users.paymail = chats.handle
         where encrypted = 0
         ${c ? `and channel = '${c}'` : 'and channel = ""'}
