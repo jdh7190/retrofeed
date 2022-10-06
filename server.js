@@ -207,7 +207,7 @@ app.post('/priceRequest', async(req, res) => {
             if (paymentResult.transactionId) {
                 switch(action) {
                     case 'chat':
-                        await chatIdx({ text, handle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, username: `THE MORNIN' RUN`, encrypted, channel })
+                        await chatIdx({ text, handle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, username: `THE MORNIN' RUN`, encrypted, channel, blocktime: Math.floor(Date.now() / 1000) })
                         break;
                     default:
                         break;
@@ -336,7 +336,7 @@ app.get('/getChats', async(req, res) => {
             left outer join retro.users on users.handle = chats.handle OR users.paymail = chats.handle
         where encrypted = 0
         ${c ? `and channel = '${c}'` : 'and channel = ""'}
-        order by chats.blocktime desc LIMIT 50`;
+        order by chats.blocktime desc, chats.id desc LIMIT 50`;
         const r = await sqlDB.sqlPromise(stmt, 'Failed to query chats.', '', pool);
         res.send(r);
     } catch (e) {

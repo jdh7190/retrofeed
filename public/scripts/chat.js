@@ -158,7 +158,10 @@ const addEphemeralMsg = text => {
     i.className = 'chat-icon';
     const m = document.createElement('div');
     m.className = 'm';
-    m.innerText = text || `COMMANDS
+    if (text) {
+        m.innerHTML = text;
+    } else {
+        m.innerText = `COMMANDS
 
 Channels:
 /list - display available channels on retrofeed
@@ -170,6 +173,7 @@ cd.. OR cd .. - navigate to /chat page
 
 Others:
 /help - display this message`;
+    }
     row.appendChild(i);
     row.appendChild(m);
     chatCon.appendChild(row);
@@ -280,7 +284,7 @@ const postChat = async() => {
 
 `;
         c.forEach(l => {
-            text += `#${l.channel} (${l.count})
+            text += `<a class="channel" href="/chat?c=${l.channel}">#${l.channel.substr(0,24)}</a> (${l.count})<br>
 `
         });
         addEphemeralMsg(text);
