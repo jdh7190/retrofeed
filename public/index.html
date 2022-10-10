@@ -91,7 +91,9 @@
             const parsedUrl = new URL(location);
             document.getElementById("post").value = parsedUrl.searchParams.get('text');
             checkPost();
-            history.replaceState(null, null, window.location.pathname);
+            if (parsedUrl.searchParams.get('text')) {
+                history.replaceState(null, null, window.location.pathname);
+            }
         });
         const heartSound = new Audio();
         heartSound.src = '/assets/sounds/heartpiece.wav';
