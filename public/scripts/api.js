@@ -12,15 +12,17 @@ const hcPost = async(payload, action, content) => {
     const res = await r.json();
     return res;
 }
-const getPosts = async order => {
-    const res = await (await fetch(`/getPosts/?order=${order}`)).json();
+const getPosts = async (order, handle) => {
+    let requestURL = `/getPosts/?order=${order}`;
+    if (handle) { requestURL += `&handle=${handle}` }
+    const res = await (await fetch(requestURL)).json();
     return res;
 }
-const getMyLikes = async (handle, createdDateTime) => {
+const getMyLikes = async createdDateTime => {
     const r = await fetch(`/myLikes`, {
         method: 'post',
         body: JSON.stringify({
-            handle,
+            handle: localStorage.paymail.split('@')[0],
             createdDateTime
         })
     });

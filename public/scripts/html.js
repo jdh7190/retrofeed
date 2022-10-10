@@ -4,6 +4,8 @@ const span = document.getElementsByClassName("close")[0];
 const prof = document.getElementById('prof');
 const tPost = document.getElementById('tPost');
 const tipSection = document.getElementById('tipSection');
+const title = document.getElementsByClassName('title')[0];
+title.onclick = () => location.href = '/';
 span.onclick = () => {
     modal.style.display = "none";
     tipSection.style.display = "none";

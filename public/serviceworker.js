@@ -1,4 +1,4 @@
-var CACHE_NAME = 'v0.29';
+var CACHE_NAME = 'v0.30';
 var urlsToCache = [
   '/index.html',
   '/manifest.json',
@@ -33,6 +33,7 @@ var urlsToCache = [
   '/assets/images/back.png',
   '/assets/images/back.svg',
   '/assets/images/chat.png',
+  '/assets/images/reply.png',
   '/assets/images/emoji-reaction.svg',
   '/assets/images/feed.png',
   '/assets/images/hc_icon.png',

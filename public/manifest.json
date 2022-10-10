@@ -6,9 +6,8 @@
   "background_color": "#212529",
   "display": "standalone",
   "orientation": "portrait",
-  "Scope": "/",
-  "id": "/index.html",
-  "start_url": "/index.html",
+  "ccope": "/",
+  "start_url": "/",
   "share_target": {
     "action": "/index.html",
     "method": "GET",

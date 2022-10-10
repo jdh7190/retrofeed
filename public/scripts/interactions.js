@@ -80,19 +80,22 @@ async function like() {
     document.getElementById(likedTxid).className = `like-heart nes-icon heart is-medium`;
     document.getElementById(`${likedTxid}_count`).innerText = likeCount + 1;
 }
-const bPost = async text => {
+const bPost = async (text, replyTxid) => {
     if (!localStorage.hcauth) { 
         location.href = '/profile';
         return;
     }
-    const post = document.getElementById("post").value + ` $osg`;
+    const post = document.getElementById("post").value;
     loadingDlg('Posting');
     document.getElementById("post").value = "";
     try {
-        const p = bSocial.post();
+        const p = replyTxid ? bSocial.reply(replyTxid) : bSocial.post();
         p.addText(post);
         const file = document.querySelector('input[type="file"]')?.files[0];
-        const postPayload = { text: post }
+        let postPayload = { text: post }
+        if (replyTxid) {
+            postPayload.replyTxid = replyTxid;
+        }
         if (file) {
             const fileData = await getBase64File(file);
             p.addImage(fileData);
@@ -107,20 +110,26 @@ const bPost = async text => {
         const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', localStorage.ownerAddress, signature]);
         let hexarr = [];
         payload.forEach(p => { hexarr.push(str2Hex(p)) })
-        const res = await hcPost(hexarr, 'post', postPayload);
+        const mentions = extractMentions(post);
+        if (mentions?.length) {
+            postPayload.mentions = mentions;
+        }
+        const action = replyTxid ? 'reply' : 'post';
+        const res = await hcPost(hexarr, action, postPayload);
         console.log({res});
         if (res?.paymentResult?.transactionId) {
             const tempPost = {
                 content: post,
-                createdDateTime: Date.now(),
+                createdDateTime : Date.now(),
                 handle: localStorage.paymail.split('@')[0],
                 icon: localStorage.icon,
                 txid: res.paymentResult.transactionId,
                 likeCount: 0,
                 username: localStorage?.username || '',
-                imgs: postPayload?.image || ''
+                imgs: postPayload?.image || '',
+                replyTxid
             }
-            createRetroPost(tempPost, true)
+            createRetroPost(tempPost, true, replyTxid ? true : false);
             loadingDlg();
         } else { throw res }
     } catch(e) {

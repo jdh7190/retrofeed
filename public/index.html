@@ -51,26 +51,14 @@
                 <select required id="order" class="filter-sort">
                     <option value="0">Most recent</option>
                     <option value="1">Likes</option>
-                    <!-- <option value="2">PoW</option>
-                    <option value="3">News</option> -->
+                    <option value="2">Replies</option>
                 </select>
             </div>
             <div id="message-container" class="posts"></div>
         <!-- </div> -->
         <div id="page-2"></div>
         <div id="page-3"></div>
-        <div id="page-4">
-            <div class="info">
-                <p>Welcome!</p>
-                <p>This is a Retro Themed Open Social Client on Bitcoin where users can discuss anything and everything.</p>
-                <p>Posts, Likes, and Tips are currently supported.</p>
-                <p>Posting costs a little bit of Satoshis.</p>
-                <p>Likes cost 1 cent, the platform takes 10%.</p>
-                <p>The platform takes 5% of all tips.</p>
-                <p>Click any thumbnail of an URL to get a clean reader view of the article.</p>
-                <p>Enjoy!</p>
-            </div>
-        </div>
+        <div id="page-4"></div>
         <!-- <div class='indicator'><div id='indicator_bar'></div></div>
         <div id='bottomnav'>
             <div class='bottomnav_btn perfectcenter' onclick='btnactive(this,0)'><img class="app-icon" src="./assets/images/feed.png" alt="feed"></div>
@@ -100,15 +88,17 @@
             const parsedUrl = new URL(location);
             document.getElementById("post").value = parsedUrl.searchParams.get('text');
             checkPost();
+            history.replaceState(null, null, window.location.pathname);
         });
         const heartSound = new Audio();
         heartSound.src = '/assets/sounds/heartpiece.wav';
         var loadingPost = false, selOrder = 0, loadingLike = false, loadingText = '';
-        getRetroPosts(localStorage?.orderBy !== undefined ? localStorage.orderBy : 0)
+        const requestHandle = new URLSearchParams(location.search).get('handle') || '';
+        getRetroPosts(localStorage?.orderBy !== undefined ? localStorage.orderBy : 0, requestHandle)
         document.getElementById("order").onchange = () => {
             selOrder = document.getElementById("order").value;
             localStorage.orderBy = selOrder;
-            getRetroPosts(selOrder);
+            getRetroPosts(selOrder, requestHandle);
         }
         if (localStorage.orderBy) {
             selOrder = localStorage.orderBy;

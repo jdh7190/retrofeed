@@ -91,6 +91,25 @@ const bPostIdx = async payload => {
         return {error:e}
     }
 }
+const getReplyHandle = async txid => {
+    const repliedStmt = `SELECT handle from retro.posts where txid = '${txid}'`;
+    const rs = await sqlDB.sqlPromise(repliedStmt, 'Error querying for replied handle.', `No handle found for ${txid}.`, pool);
+    return rs[0].handle;
+}
+const replyIdx = async payload => {
+    try {
+        const { content, txid, rawtx, handle, image, replyTxid, replyHandle } = payload;
+        const flds = ['content', 'txid', 'rawtx', 'handle', 'imgs', 'repliedTxid', 'repliedHandle'];
+        const contentText = helpers.replaceAll(content, "'", "''");
+        const vls = [contentText, txid, rawtx, handle, image || '', replyTxid, replyHandle]
+        const stmt = sqlDB.insert('replies', flds, vls, true);
+        const r = await sqlDB.sqlPromise(stmt, 'Failed to insert replies.', '', pool);
+        return r;
+    } catch(e) {
+        console.log(e);
+        return {error:e}
+    }
+}
 const chatIdx = async payload => {
     try {
         const { text, txid, rawtx, handle, username, encrypted, channel, app, signingAddress, signature, blocktime } = payload;
@@ -172,12 +191,13 @@ const signPayload = (key, payload) => {
     return signature;
 }
 app.post('/priceRequest', async(req, res) => {
-    const { channel, action, content, hcauth, encrypted } = req.body;
+    const { channel, action, content, hcauth, encrypted, symbol } = req.body;
     const handle = 'morninrun';
     const morninPostingKey = 'L2bo8pabyHj94LmaPt95ZHwEQiffDFs4ZhsvAKBCVL8fj2PSM76Q';
-    const morninSigningAddress = '1GZ8kkztZbAuLr2Hq2Lk8mcuP8wKgcxP4J'
-    const p = await bsvPrice();
-    const text = `BSV Price: $${p.slice(0,5)}`
+    const morninSigningAddress = '1GZ8kkztZbAuLr2Hq2Lk8mcuP8wKgcxP4J';
+    const r = await (await fetch(`https://mornin.run/tokenPrice?symbol=${symbol}`)).json();
+    const displaySymbol = symbol.toUpperCase();
+    const text = `${displaySymbol} Price: ${displaySymbol === 'BSV' ? '$' + r.price.toFixed(2) : r.satoshiPrice + ' satoshis'}`;
     let pay = [
         '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut',
         text,
@@ -202,7 +222,8 @@ app.post('/priceRequest', async(req, res) => {
         try {
             const cloudAccount = handCashConnect.getAccountFromAuthToken(hcauth);
             const paymentParameters = { appAction: action, description: 'Price Request 📰📈' }
-            paymentParameters.attachment = { format: 'hexArray', value: hexarr }
+            paymentParameters.attachment = { format: 'hexArray', value: hexarr };
+            paymentParameters.payments = [{ destination: 'morninrun', currencyCode: 'BSV', sendAmount: 0.000001 }];
             const paymentResult = await cloudAccount.wallet.pay(paymentParameters);
             if (paymentResult.transactionId) {
                 switch(action) {
@@ -222,23 +243,30 @@ app.post('/priceRequest', async(req, res) => {
 })
 app.post('/hcPost', async(req, res) => {
     const { payload, action, hcauth, content, handle } = req.body;
-    let description, likePayload, tipPayload, chatPayload;
+    let description, likePayload, tipPayload, chatPayload, replyPayload, postPayload;
     switch(action) {
-        case 'post': description = `retrofeed ${action}`; break;
+        case 'post': 
+            description = `${action}`;
+            postPayload = content;
+            break;
+        case 'reply':
+            description = `${action} ↩️`;
+            replyPayload = content;
+            break;
         case 'chat': 
             description = `retrofeed ${action} 💬`;
             chatPayload = content;
             break;
         case 'like':
             likePayload = content;
-            description = `retrofeed ${action} ${likePayload?.emoji}`;
+            description = `${action} ${likePayload?.emoji}`;
             break;
         case 'emoji reaction':
             likePayload = content;
             description = `${action} ${likePayload?.emoji}`;
             break;
         case 'tip':
-            description = `retrofeed ${action} 💰`;
+            description = `${action} 💰`;
             tipPayload = content;
             break;
         default: break;
@@ -252,6 +280,21 @@ app.post('/hcPost', async(req, res) => {
         }
         if (payload) {
             paymentParameters.attachment = { format: 'hexArray', value: payload }
+        }
+        if (postPayload?.mentions?.length) {
+            paymentParameters.payments = [];
+            postPayload.mentions.forEach(mention => {
+                paymentParameters.payments.push({ destination: mention, currencyCode: 'USD', sendAmount: 0.005 })
+            })
+            paymentParameters.payments.push({ destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: 0.001 });
+        }
+        if (replyPayload?.replyTxid) {
+            const replyHandle = await getReplyHandle(replyPayload.replyTxid);
+            replyPayload.replyHandle = replyHandle;
+            paymentParameters.payments = [
+                { destination: replyHandle, currencyCode: 'USD', sendAmount: 0.009 },
+                { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: 0.001 }
+            ]
         }
         if (likePayload?.likedHandle) {
             if (action === 'emoji reaction') {
@@ -268,16 +311,34 @@ app.post('/hcPost', async(req, res) => {
         }
         if (tipPayload?.handle) {
             paymentParameters.payments = [
-                { destination: tipPayload.tippedHandle, currencyCode: 'USD', sendAmount: tipPayload.amount*0.9 },
-                { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: tipPayload.amount*0.1 }
+                { destination: tipPayload.tippedHandle, currencyCode: 'USD', sendAmount: tipPayload.amount*0.99 },
+                { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: tipPayload.amount*0.01 }
             ]
+        }
+        if (chatPayload?.mentions?.length) {
+            paymentParameters.payments = [];
+            chatPayload.mentions.forEach(mention => {
+                paymentParameters.payments.push({ destination: mention, currencyCode: 'USD', sendAmount: 0.005 })
+            })
+            paymentParameters.payments.push({ destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: 0.001 });
         }
         const paymentResult = await cloudAccount.wallet.pay(paymentParameters);
         if (paymentResult.transactionId) {
+            const postHandle = req.body.handle;
             switch(action) {
                 case 'post':
-                    const postHandle = req.body.handle;
                     await bPostIdx({ content: content.text, image: content.image, handle: postHandle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex });
+                    break;
+                case 'reply':
+                    await replyIdx({
+                        content: content.text,
+                        image: content.image,
+                        handle: postHandle,
+                        txid: paymentResult.transactionId,
+                        rawtx: paymentResult.rawTransactionHex,
+                        replyTxid: content.replyTxid,
+                        replyHandle: replyPayload.replyHandle
+                    });
                     break;
                 case 'like':
                 case 'emoji reaction':
@@ -310,19 +371,31 @@ app.post('/hcPost', async(req, res) => {
     }
 })
 app.get('/getPosts', async(req, res) => {
-    const {order} = req.query;
+    const { order, handle } = req.query;
     let orderBy;
-    if (order === '1') {
-        orderBy = 'likeCount'
-    } else {
-        orderBy = 'createdDateTime'
-    }
+    if (order === '0') { orderBy = 'createdDateTime' }
+    else if (order === '1') { orderBy = 'likeCount' }
+    else { orderBy = 'replyCount' }
+    const handleClause = handle ? ('where posts.handle = ' + "'" + handle + "'") : '';
     try {
-        const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, imgs FROM retro.posts
+        const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, posts.content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, posts.imgs FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
             join retro.users on users.handle = posts.handle
-        group by posts.id order by ${orderBy} desc LIMIT 50`;
-        const r = await sqlDB.sqlPromise(stmt, 'Failed to register user.', '', pool);
+        ${handleClause}
+        group by posts.id
+        order by ${orderBy} desc LIMIT 50`;
+        const r = await sqlDB.sqlPromise(stmt, 'Failed to query for posts.', 'No posts found.', pool);
+        const rStmt = `SELECT count(replies.id) as replyCount, posts.txid FROM retro.posts
+            left outer join retro.replies on posts.txid = replies.repliedTxid
+        group by posts.id order by posts.createdDateTime desc LIMIT 50`;
+        const rs = await sqlDB.sqlPromise(rStmt, '', '', pool);
+        const replies = rs.filter(reply => reply.replyCount > 0);
+        replies.forEach(reply => {
+            const found = r.findIndex(x => x.txid === reply.txid);
+            if (found > -1) {
+                r[found].replyCount = reply.replyCount;
+            }
+        })
         res.send(r);
     } catch (e) {
         console.log(e);
@@ -347,7 +420,7 @@ app.get('/getChats', async(req, res) => {
 app.get('/channels', async(req, res) => {
     try {
         const stmt = `SELECT channel, count(chats.id) as count FROM retro.chats 
-            where channel != '' 
+            where channel != ''
             group by channel
             order by count desc`;
         const r = await sqlDB.sqlPromise(stmt, 'Failed to query channels', '', pool);
@@ -358,14 +431,22 @@ app.get('/channels', async(req, res) => {
     }
 })
 app.get('/getPost', async(req, res) => {
+    const { txid } = req.query;
     try {
         const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, imgs FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
             join retro.users on users.handle = posts.handle
         where posts.txid = '${req.query.txid}'
         group by posts.id order by createdDateTime desc`;
-        const r = await sqlDB.sqlPromise(stmt, 'Failed to register user.', '', pool);
-        res.send(r);
+        const r = await sqlDB.sqlPromise(stmt, `Failed to get post for txid ${txid}.`, `No post for txid ${txid}.`, pool);
+        const replyStmt = `SELECT replies.txid, replies.handle, content, imgs, replies.createdDateTime, count(likes.id) as likeCount, users.name as username, users.avatarURL as icon FROM retro.replies
+            left outer join retro.likes on replies.txid = likes.likedTxid
+            join retro.users on retro.users.handle = replies.handle
+            where repliedTxid = '${txid}'
+            group by replies.id
+            order by likeCount asc`;
+        const rs = await sqlDB.sqlPromise(replyStmt, `Failed to get replies for ${txid}.`, `No replies for txid ${txid}.`, pool);
+        res.send({ post: r, replies: rs});
     } catch (e) {
         console.log(e);
         res.send({error:'Failed to fetch from database.'});

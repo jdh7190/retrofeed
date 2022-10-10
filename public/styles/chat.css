@@ -28,7 +28,23 @@
     margin-top: 20px;
 }
 .channel {
-    color: #0000EE;
+    color: #0951FD;
+}
+.mention {
+    color: #38CB7C;
+    font-weight: normal;
+}
+.mention:visited {
+    color: #38CB7C;
+    font-weight: normal;
+}
+.hash-tag {
+    color: #854ddc;
+    font-weight: normal;
+}
+.hash-tag:visited {
+    color: #854ddc;
+    font-weight: normal;
 }
 .row {
     padding: 8px 0;
@@ -176,7 +192,7 @@ i.fa-bitcoin {
     color: #0951FD;
 }
 .word-wrap {
-    color:#0000EE;
+    color:#0951FD;
     -ms-word-break: break-all;
     word-break: break-all;
     word-break: break-word;

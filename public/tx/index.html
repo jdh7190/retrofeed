@@ -23,9 +23,9 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap">
     <link rel="apple-touch-icon" href="/assets/images/icon-192x192.png">
     <script src="../scripts/bsv.browser.min.js"></script>
-    <script src="../scripts/bsv-ecies.min.js"></script>
     <script src="../scripts/helpers.js"></script>
     <script src="../scripts/api.js"></script>
+    <script src="../scripts/message.js"></script>
     <script src="../scripts/bSocial.js"></script>
     <script src="../scripts/post.js"></script>
     <script src="../scripts/like.js"></script>
@@ -35,10 +35,21 @@
     <div class="page">
       <div class="header">
         <a href="/profile" class="prof" name="profile"><img id="prof" class="avatar" alt="avatar"></a>
-        <h4 class="title center">retrofeed</h4>
-        <a href="/info" class="help"><img class="question" src="../assets/images/question_block_32.png" alt="question"></a>
+        <div class="title">retrofeed</div>
+        <a href="/chat" class="help"><img class="question" src="../assets/images/chat.png" alt="question"></a>
       </div>
-        <div id="message-container" class="posts"></div>
+        <div id="message-container" class="posts">
+            <div class="poster">
+                <div class="file-upload">
+                    <input type="file" class="file-input" accept="image/*" id="fileInput">
+                    <label for="fileInput">Upload</label><span id="filename" class="file-name"></span>
+                </div>
+                <textarea type="text" id="post" class="post-input" placeholder="My reply is..." autofocus></textarea>
+                <button id="tPost" class="post-btn">Post</button>
+                <!-- <span class="reply-header">Replies</span> -->
+            </div>
+        </div>
+        <div id="reply-container" class="posts"></div>
         <div id="myModal" class="modal">
             <div class="modal-content">
               <span class="close">&times;</span>
@@ -63,12 +74,46 @@
         const heartSound = new Audio();
         heartSound.src = '/assets/sounds/heartpiece.wav';
         var loadingPost = false, selOrder = 0, loadingLike = false, loadingText = '';
-        const getPost = async() => {
+        const getPostReplies = async() => {
             const r = await fetch(`/getPost?txid=${txid}`);
             const res = await r.json();
-            const post = res[0];
+            const post = res.post[0];
+            console.log(post)
+            const replies = res.replies;
+            console.log(replies)
+            const ld = new Date(post.createdDateTime);
+            const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            const d = new Date(ld.getTime() - tzoffset).toISOString().slice(0, 19).replace('T', ' ');
+            myLikes = await getMyLikes(d);
             createRetroPost(post, true)
+            document.getElementById(`${txid}_noReplies`).innerText = replies?.length || 0;
+            replies.forEach(reply => { createRetroPost(reply, false, true) })
         }
-        getPost();
+        getPostReplies();
+        tPost.setAttribute("disabled", null);
+        tPost.onclick = () => { bPost(null, txid) }
+        document.getElementById("post").addEventListener("keyup", () => {checkPost()})
+        const checkPost = () => {
+            const input = document.getElementById("post").value;
+            if (input !== "") {
+                tPost.removeAttribute("disabled");
+            } else {
+                tPost.setAttribute("disabled", null);
+            }
+        }
+        const fileInput = document.getElementById('fileInput');
+        fileInput.addEventListener('change', async e => {
+            const fileList = event.target.files;
+            if (fileList.length) {
+                const file = fileList[0];
+                if (file.size >= 100000) {
+                    const m = document.getElementById('myModal');
+                    m.style.display = 'block';
+                    modalText.innerText = `Please upload only files less than 100KB.`;
+                    return;
+                }
+                document.getElementById('filename').innerText = `${file.name}`;
+            }
+        })
    </script>
 </html>

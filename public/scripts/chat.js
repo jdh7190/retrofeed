@@ -53,7 +53,7 @@ const getChats = async() => {
             addChatMsg(chats[i]);
         }
     }
-    section.scrollIntoView(false)
+    section.scrollIntoView(false);
 }
 const urlParams = new URLSearchParams(location.search);
 const chatChannel = urlParams.get('c') || '';
@@ -150,7 +150,7 @@ const emojiExists = (parent, hexcode) => {
     const found = arr.find(a => a.id === hexcode);
     return found;
 }
-const addEphemeralMsg = text => {
+const addEphemeralMsg = (text, innerHTML) => {
     const row = document.createElement('div');
     row.className = 'row';
     const i = document.createElement('img');
@@ -159,7 +159,11 @@ const addEphemeralMsg = text => {
     const m = document.createElement('div');
     m.className = 'm';
     if (text) {
-        m.innerHTML = text;
+        if (innerHTML) {
+            m.innerHTML = text;
+        } else {
+            m.innerText = text;
+        }
     } else {
         m.innerText = `COMMANDS
 
@@ -170,6 +174,11 @@ Channels:
 cd #channel - join channel by name
 /back - navigate back in browser
 cd.. OR cd .. - navigate to /chat page
+/home - navigate to Home page
+/profile - navigate to Profile page
+/info - navigate to Info page
+
+/price - get price of BSV of various tokens (costs 100 satoshis to request)
 
 Others:
 /help - display this message`;
@@ -196,7 +205,17 @@ const addChatMsg = o => {
     ei.dataset.handle = userHandle;
     const m = document.createElement('div');
     m.className = 'm';
-    const content = text.replace(urlRegex, url => { return `<a class="word-wrap" href='${url}' rel="noreferrer" target="_blank">${url}</a>` })
+    let content = text.replace(urlRegex, url => { return `<a class="word-wrap" href='${url}' rel="noreferrer" target="_blank">${url}</a>` })
+    if (content.includes('@')) {
+        content = content.replace(tagRegex, tag => {
+            return tag?.length > 1 ? `<a class="mention" href='/?handle=${tag.slice(1)}' rel="noreferrer">${tag}</a>` : tag;
+        })
+    }
+    if (content.includes('#')) {
+        content = content.replace(hashtagRegex, hashtag => {
+            return hashtag?.length > 1 ? `<a class="hash-tag" href='/chat/?c=${hashtag.slice(1)}' rel="noreferrer">${hashtag}</a>` : tag;
+        })
+    }
     m.innerHTML = `${userHandle}: ${content}`;
     const t = document.createElement('a');
     t.href = txid ? `https://whatsonchain.com/tx/${txid}` : '/chat';
@@ -266,33 +285,52 @@ const chat = async(msg, channel, encrypt) => {
     const arrops = p.getOps('utf8');
     let hexarr = [];
     arrops.forEach(a => { hexarr.push(str2Hex(a)) })
+    const mentions = extractMentions(msg);
     const r = await hcPost(hexarr, 'chat', {
         text: msg,
         handle: localStorage.paymail.split('@')[0],
         username: localStorage.username,
         encrypted: encryp === true ? 1 : 0,
         channel: channel || '',
-        blocktime: Math.floor(Date.now() / 1000)
+        blocktime: Math.floor(Date.now() / 1000),
+        mentions
     });
     return r;
 }
 const postChat = async() => {
     const cmd = chatInput.value.toLowerCase();
     if (cmd === '/ls' || cmd === 'ls' || cmd === '/list' || cmd === '/l' || cmd === 'dir' || cmd === '/dir') {
-        const c = await (await fetch(`/channels`)).json();
+        const c = (await (await fetch(`/channels`)).json()).filter(channel => channel.count > 2);
         let text = `Available Channels on retrofeed:
 
 `;
         c.forEach(l => {
-            text += `<a class="channel" href="/chat?c=${l.channel}">#${l.channel.substr(0,24)}</a> (${l.count})<br>
+            text += `<a class="hash-tag" href="/chat?c=${l.channel}">#${l.channel.substr(0,24)}</a> (${l.count})<br>
 `
         });
-        addEphemeralMsg(text);
+        addEphemeralMsg(text, true);
         chatInput.value = '';
         section.scrollIntoView(false);
         return;
     }
-    if (cmd === '/price') {
+    if (cmd.startsWith('/price')) {
+        const symbols = ['BSV', 'SHUA', 'HST', 'USDC', 'BAMS', 'SAITO', 'POO', 'CIG', 'TESTNET', 'REX', 'DSV', 'FROGE',
+            'NOVO', 'TSC', 'AMT', 'WHST', 'MC', 'SHOW', 'OVTS'];
+        let [p, symbol] = cmd.split(' ');
+        if (!symbol || !symbols.includes(symbol.toUpperCase())) {
+            let msg = `Available tokens:
+
+`;
+            symbols.forEach(s => {
+                msg += `${s}
+`
+            })
+            addEphemeralMsg(msg, false);
+            chatInput.value = '';
+            section.scrollIntoView(false);
+            return;
+        }
+        console.log(symbol)
         const r = await fetch('/priceRequest', {
             method: 'post',
             body: JSON.stringify({
@@ -300,7 +338,8 @@ const postChat = async() => {
                 content: 'BSV',
                 action: 'chat',
                 channel: chatChannel,
-                encrypted: encryp === true ? 1 : 0
+                encrypted: encryp === true ? 1 : 0,
+                symbol
             })
         })
         const res = await r.json();

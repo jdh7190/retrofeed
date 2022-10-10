@@ -214,3 +214,10 @@ const lazyLoadImages = imgs => {
     addEventListener('scroll', throttle(lazyLoad, 50));
     addEventListener('resize', throttle(lazyLoad, 50))
 }
+const extractMentions = text => {
+    let mentions = text.match(tagRegex);
+    if (mentions?.length) {
+        mentions = mentions.filter(m => m.length > 1)?.map(m => m.slice(1));
+    }
+    return mentions;
+}

@@ -6,6 +6,8 @@ const BPP_PROTOCOL_ADDRESS = 'BPP';
 const APP = 'retrofeed.me';
 const urlRegex = /(https?:\/\/[^\s]+)/g;
 const youRegex = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/;
+const tagRegex = /@[A-Za-z0-9_-]*/g;
+const hashtagRegex = /#[A-Za-z0-9_-]*/g;
 const TEST_PUBLIC_ENCRYPTION_KEY = '023c302b01e42c6f6e7cd8811c3a7065b0c2579845b14f272c3517eac95b5d658b';
 const PROD_PUBLIC_ENCRYPTION_KEY = '';
 const api = 'whatsonchain';

@@ -1,9 +1,15 @@
 const messageContainer = document.getElementById('message-container');
+const replyContainer = document.getElementById('reply-container');
 const bSocial = new BSocial(APP);
 const chatApp = new BSocial(APP);
 var myLikes = [];
 const manageContent = (content, con) => {
-    content = content.replace('$osg', '')
+    content = content.replace('$osg', '');
+    if (content.includes('@')) {
+        content = content.replace(tagRegex, tag => {
+            return tag?.length > 1 ? `<a class="mention" href='/?handle=${tag.slice(1)}' rel="noreferrer">${tag}</a>` : tag;
+        })
+    }
     if (content.includes('twitter.com')) {
         const tweet = extractTweetUrl(content)
         const pathArray = tweet.split('/');
@@ -40,6 +46,7 @@ const manageContent = (content, con) => {
             div.appendChild(playButton);
             div.onclick = () => { labnolIframe(div) };
             vidCon.appendChild(div);
+            con.innerHTML = content.replace(urlRegex, url => { return `<a class="link-yt" href='${url}' rel="noreferrer" target="_blank">${url}</a>` });
             con.appendChild(vidCon);
             div.onclick = () => { labnolIframe(div) };
             return vidCon.outerHTML;
@@ -51,9 +58,12 @@ const manageContent = (content, con) => {
         return;
     }
 }
-const createRetroPost = (post, recent) => {
+const createRetroPost = (post, recent, isReply) => {
     const retropost = document.createElement('div');
     retropost.className = 'retropost';
+    if (isReply) {
+        retropost.className += ` reply-post`;
+    }
     const profile = document.createElement('div');
     profile.className = 'profile';
     const profileImg = document.createElement('img');
@@ -74,6 +84,15 @@ const createRetroPost = (post, recent) => {
     coin.onclick = tip;
     coin.setAttribute('data-handle', post.handle);
     coin.setAttribute('data-txid', post.txid);
+    if (!isReply) {
+        const reply = document.createElement('img');
+        reply.src = location.href.includes(`/tx/`) ? '../assets/images/reply.png' : './assets/images/reply.png';
+        reply.className = 'reply';
+        reply.setAttribute('data-handle', post.handle);
+        reply.setAttribute('data-txid', post.txid);
+        reply.onclick = () => location.href = `/tx/?txid=${post.txid}`;
+        retropost.appendChild(reply);
+    }
     retropost.appendChild(coin);
     const content = document.createElement('p');
     content.className = 'postContent urlFormat';
@@ -94,12 +113,13 @@ const createRetroPost = (post, recent) => {
     item.appendChild(numLikes);
     const star = document.createElement('i');
     star.className = 'nes-icon star is-medium is-empty boost-star';
-    //star.onclick = boost;
-    //item.appendChild(star);
-    const boostValue = document.createElement('var');
-    boostValue.className = 'boostValue';
-    boostValue.innerText = 0;
-    //item.appendChild(boostValue);
+    if (!isReply) {
+        const replyValue = document.createElement('var');
+        replyValue.className = 'reply-value';
+        replyValue.innerText = post?.replyCount || 0;
+        replyValue.id = `${post.txid}_noReplies`;
+        item.appendChild(replyValue);
+    }
     const share = document.createElement('button');
     share.className = 'share';
     share.id = post.txid;
@@ -114,8 +134,8 @@ const createRetroPost = (post, recent) => {
     txLink.rel = 'noreferrer';
     item.appendChild(txLink);
     profileImg.src = post.icon !== 'null' ? post.icon : 'assets/images/question_block_32.png';
-    userLink.href = `https://handcash.me/${post.handle}`;
-    userLink.innerText = `${post.username}`;
+    userLink.href = `${location.origin}/?handle=${post.handle}`;
+    userLink.innerText = `${post?.username || ''} $${post?.handle}`;
     manageContent(post?.content, content);
     if (post?.imgs) {
         content.innerHTML += `<img src="${post.imgs}" class="imgfile" alt="imgfile">`
@@ -123,16 +143,20 @@ const createRetroPost = (post, recent) => {
     numLikes.innerText = post?.likeCount || 0;
     timeagoSpan.innerText = timeago(new Date(post.createdDateTime));
     retropost.appendChild(item);
-    recent? messageContainer.prepend(retropost) : messageContainer.appendChild(retropost);
+    if (isReply) {
+        replyContainer.prepend(retropost);
+        return;
+    }
+    recent ? messageContainer.prepend(retropost) : messageContainer.appendChild(retropost);
 }
-const getRetroPosts = async selOrder => {
+const getRetroPosts = async (selOrder, handle) => {
     loadingDlg('Blowing in the cartridge');
     document.getElementById('message-container').innerHTML = "";
-    const posts = await getPosts(selOrder);
+    const posts = await getPosts(selOrder, handle);
     console.log({posts})
-    const earliestPostCreatedDateTime = posts[posts.length-1].createdDateTime;
-    if (localStorage?.paymail) {
-        myLikes = await getMyLikes(localStorage?.paymail.split('@')[0], earliestPostCreatedDateTime);
+    const earliestPostCreatedDateTime = posts[posts.length-1]?.createdDateTime;
+    if (localStorage?.paymail && earliestPostCreatedDateTime) {
+        myLikes = await getMyLikes(earliestPostCreatedDateTime);
         console.log(myLikes)
     }
     for (let i = 0; i < posts.length; i++) {
