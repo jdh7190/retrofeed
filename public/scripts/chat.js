@@ -305,7 +305,7 @@ const postChat = async() => {
 
 `;
         c.forEach(l => {
-            text += `<a class="hash-tag" href="/chat?c=${l.channel}">#${l.channel.substr(0,24)}</a> (${l.count})<br>
+            text += `<br><a class="hash-tag" href="/chat?c=${l.channel}">#${l.channel.substr(0,24)}</a> (${l.count})
 `
         });
         addEphemeralMsg(text, true);
