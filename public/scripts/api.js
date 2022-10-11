@@ -6,7 +6,7 @@ const hcPost = async(payload, action, content) => {
             action,
             payload,
             content,
-            handle: localStorage.paymail.split('@')[0]
+            handle: localStorage.paymail?.split('@')[0]
         })
     });
     const res = await r.json();
@@ -22,7 +22,7 @@ const getMyLikes = async createdDateTime => {
     const r = await fetch(`/myLikes`, {
         method: 'post',
         body: JSON.stringify({
-            handle: localStorage.paymail.split('@')[0],
+            handle: localStorage.paymail?.split('@')[0],
             createdDateTime
         })
     });

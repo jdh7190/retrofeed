@@ -68,7 +68,7 @@
     <script src="../scripts/interactions.js"></script>
    </body>
    <script>
-        if (localStorage?.icon) { prof.src = localStorage.icon } else { prof.src = `./assets/images/userprofile.png` }
+        if (localStorage?.icon) { prof.src = localStorage.icon } else { prof.src = `../assets/images/userprofile.png` }
         const params = new URLSearchParams(location.search);
         const txid = params.get('txid');
         const heartSound = new Audio();
