@@ -181,7 +181,8 @@ cd.. OR cd .. - navigate to /chat page
 /price - get price of BSV of various tokens (costs 100 satoshis to request)
 
 Others:
-/help - display this message`;
+/help - display this message
+/rain - airdrop satoshis to each person who posted in last 50 messages`;
     }
     row.appendChild(i);
     row.appendChild(m);
@@ -213,7 +214,7 @@ const addChatMsg = o => {
     }
     if (content.includes('#')) {
         content = content.replace(hashtagRegex, hashtag => {
-            return hashtag?.length > 1 ? `<a class="hash-tag" href='/chat/?c=${hashtag.slice(1)}' rel="noreferrer">${hashtag}</a>` : tag;
+            return hashtag?.length > 1 ? `<a class="hash-tag" href='/chat/?c=${hashtag.slice(1)}' rel="noreferrer">${hashtag}</a>` : hashtag;
         })
     }
     m.innerHTML = `${userHandle}: ${content}`;
@@ -267,10 +268,9 @@ const addChatMsg = o => {
     chatCon.appendChild(row);
     return row;
 }
-const chat = async(msg, channel, encrypt) => {
+const buildChatMsg = (msg, channel) => {
     const p = chatApp.post();
-    encrypt = encryp;
-    if (encrypt) {
+    if (encryp) {
         const encKey = decryptData(localStorage.encryptedKey, localStorage.ownerKey);
         msg = eciesEncrypt(msg, encKey);
         channel = 'osg_enc';
@@ -285,6 +285,10 @@ const chat = async(msg, channel, encrypt) => {
     const arrops = p.getOps('utf8');
     let hexarr = [];
     arrops.forEach(a => { hexarr.push(str2Hex(a)) })
+    return hexarr;
+}
+const chat = async(msg, channel, encrypt) => {
+    const hexarr = buildChatMsg(msg, channel);
     const mentions = extractMentions(msg);
     const r = await hcPost(hexarr, 'chat', {
         text: msg,
@@ -350,6 +354,54 @@ const postChat = async() => {
             chatSound.play();
         }
         return;
+    }
+    if (cmd.startsWith('/rain')) {
+        let [c, amount] = cmd.split(' ');
+        const satoshiAmount = parseInt(amount);
+        if (amount > 0) {
+            const hexarr = buildChatMsg(cmd, chatChannel);
+            const obj = {
+                icon: localStorage.icon,
+                paymail: localStorage.paymail,
+                username: localStorage.username,
+                text: chatInput.value,
+                createdDateTime: new Date()
+            }
+            addChatMsg(obj);
+            chatInput.value = '';
+            section.scrollIntoView(false);
+            const r = await fetch('/rain', {
+                method: 'post',
+                body: JSON.stringify({
+                    hcauth: localStorage.hcauth,
+                    action: 'rain',
+                    satoshis: satoshiAmount / 100000000,
+                    payload: hexarr,
+                    content: {
+                        handles: setOfHandles,
+                        channel: chatChannel,
+                        encrypted: encryp === true ? 1 : 0,
+                        blocktime: Math.floor(Date.now() / 1000),
+                        text: cmd,
+                        handle: localStorage.paymail.split('@')[0],
+                        username: localStorage.username,
+                    },
+                })
+            });
+            const res = await r.json();
+            console.log(res);
+            chatSound.play();
+            return;
+        } else {
+            addEphemeralMsg(`Please enter a positive whole number of satoshis to rain to handles.
+            
+Example:
+
+/rain 1000`);
+            chatInput.value = '';
+            section.scrollIntoView(false);
+            return;
+        }
     }
     if (cmd === '/help') {
         addEphemeralMsg();

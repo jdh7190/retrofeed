@@ -370,6 +370,33 @@ app.post('/hcPost', async(req, res) => {
         res.send({error});
     }
 })
+app.post('/rain', async(req, res) => {
+    const { payload, action, hcauth, satoshis, content } = req.body;
+    const description = `Chat /rain 🌧`;
+    const { text, username, encrypted, channel, blocktime, handles, handle } = content;
+    try {
+        const cloudAccount = handCashConnect.getAccountFromAuthToken(hcauth);
+        const paymentParameters = { appAction: action, description }
+        if (payload) {
+            paymentParameters.attachment = { format: 'hexArray', value: payload }
+        }
+        if (handles?.length) {
+            paymentParameters.payments = [];
+            handles.forEach(mention => {
+                paymentParameters.payments.push({ destination: mention, currencyCode: 'BSV', sendAmount: satoshis })
+            })
+            paymentParameters.payments.push({ destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'BSV', sendAmount: satoshis });
+        }
+        const paymentResult = await cloudAccount.wallet.pay(paymentParameters);
+        if (paymentResult.transactionId) {
+            res.send({paymentResult});
+            await chatIdx({ text, handle: content.handle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, username, encrypted, channel, blocktime })
+        }
+    } catch(e) {
+        console.log(e);
+        res.send({error:e})
+    }
+})
 app.get('/getPosts', async(req, res) => {
     const { order, handle } = req.query;
     let orderBy;
