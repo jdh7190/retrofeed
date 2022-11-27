@@ -77,6 +77,9 @@ app.post('/hcaccount', async(req, res) => {
         res.send({ error: 'No profile found.' });
     }
 });
+app.post('/pixelmongenmint', async(req, res) => {
+    console.log(req.body);
+})
 const bPostIdx = async payload => {
     try {
         const { content, txid, rawtx, handle, image } = payload;
