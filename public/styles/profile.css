@@ -1,64 +1,14 @@
-@font-face {
-    font-family: 'SMT';
-    src: url('../assets/fonts/ndsbios.ttf') format('truetype')
+.top-left-icon {
+    left: 10px;
 }
-body {
-    background-color:#212529;
-    font-family: 'SMT';
-}
-button, input {
-    font-family: 'SMT';
-    font-size: 22px;
+.prof {
+    right: 10px;
 }
 .text {
     letter-spacing: 1.5px;
     line-height: 1.6;
     color: #e9e4ee;
     text-align: center;
-}
-p {
-    letter-spacing: 1.5px;
-    line-height: 1.6;
-    color: #e9e4ee;
-}
-.page {
-    margin: 0 auto;
-    font-size: 13px;
-    font-size: 25px;
-    min-width: 360px;
-    max-width: 768px;
-}
-.header {
-    position: relative;
-    width: 100%;
-}
-.title {
-    font-size: 28px;
-    position: absolute;
-    letter-spacing: 1.5px;
-    top: 20px;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #0951FD;
-}
-.prof {
-    border-radius: 50%;
-    margin-right: 10px;
-    float: right;
-    position: relative;
-    bottom: 5px;
-}
-.avatar {
-    border-radius: 50%;
-    height: 40px;
-    width: 40px;
-    image-rendering: pixelated;
-}
-.centered {
-    position: fixed;
-    top: 45%;
-    left: 50%;
-    transform: translate(-50%, -50%);
 }
 .inventory {
     position: relative;
@@ -73,23 +23,15 @@ p {
 
 }
 .icon {
-    width: 24px;
-    height: 24px;
+    width: 64px;
+    height: 64px;
     position: absolute;
     left: -30px;
-}
-.center {
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
 }
 .profile {
     position: relative;
     margin: 10px;
-    /* border: 1px solid white; */
-    top: 60px;
+    top: 10px;
 }
 .btns {
     width: 200px;
@@ -105,8 +47,9 @@ p {
 }
 .handcash {
     margin-top: 20px;
+    border-radius: 5px;
     position: relative;
-    width: 120px;
+    width: 140px;
     height: 40px;
     color: white;
     background-image: linear-gradient(#38CB7C, #1CB462);
@@ -117,22 +60,16 @@ p {
 .logout {
     color: black;
     margin-top: 20px;
-    height: 25px;
+    height: 40px;
+    width: 140px;
+    border-radius: 5px;
 }
 .hcsvg {
     position: absolute;
     height: 14px;
     width: 14px;
-    top: 11px;
-    left: 4px;
-}
-.back {
-    position: relative;
-    left: 10px;
-    float: left;
-    cursor: pointer;
-    height: 40px;
-    width: 40px;
+    top: 12px;
+    left: 11px;
 }
 .details {
     display: none;
@@ -144,7 +81,4 @@ p {
     bottom: 10px;
     left: 50%;
     transform: translate(-50%, 0);
-}
-a:visited {
-    color: #0951FD;
 }

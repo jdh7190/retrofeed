@@ -47,6 +47,32 @@ app.get('/getBoosts', async(req, res) => {
         console.log(e); res.send({error:'Failed to fetch from database.'});
     }
 });
+app.get('/crawl', async(req, res) => {
+    try {
+        const stmt = `SELECT height, hash from crawl LIMIT 1`;
+        const r = await sqlDB.sqlPromise(stmt, '', 'No record in crawl found.', pool);
+        if (r?.length) {
+            res.send(r[0]);
+        } else { throw `Error querying crawl table.` }
+    } catch(e) {
+        console.log(e);
+        res.send({error:e})
+    }
+})
+app.post('/crawl', async(req, res) => {
+    const { height, hash } = req.body;
+    try {
+        const stmt = `UPDATE crawl set height = '${height}' where id = '1'`;
+        const r = await sqlDB.sqlPromise(stmt, 'Error inserting into crawl.', 'No record in crawl found.', pool);
+        if (r.affectedRows > 0) {
+            console.log(`Updated height ${height}.`);
+        }
+        res.sendStatus(200);
+    } catch(e) {
+        console.log(e);
+        res.send({error:e})
+    }
+})
 app.post('/hcaccount', async(req, res) => {
     if (req.body.hcauth) {
         try {

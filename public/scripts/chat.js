@@ -1,6 +1,6 @@
 const chatApp = new BSocial(APP);
 var loadingPost = false, loadingText = '', reactions = [];
-/* prof.src = localStorage?.icon ? localStorage.icon : '../assets/images/user.png'; */
+prof.src = localStorage?.icon ? localStorage.icon : '../assets/images/user.png';
 const chatInput = document.getElementById('chatInput');
 const chatBtn = document.getElementById('chatBtn');
 const checkPost = () => {
@@ -35,12 +35,10 @@ var setOfHandles = [];
 const getChats = async() => {
     const q = chatChannel ? `/getChats/?c=${chatChannel}` : '/getChats'
     const chats = await (await fetch(q)).json();
-    console.log(chats)
     const handlesSet = new Set(chats.map(c => {
         return !c?.handle.includes('@') ? `${c.handle}@handcash.io` : c.handle;
     }));
     setOfHandles = Array.from(handlesSet);
-    console.log(setOfHandles)
     if (chats?.length) {
         const idx = chats.length - 1;
         reactions = await getChatReactions(chats[idx].createdDateTime);
@@ -202,10 +200,10 @@ const addChatMsg = o => {
     ei.className = 'emoji-reaction';
     ei.onclick = pickEmoji;
     ei.id = txid;
-    const userHandle = paymail !== null && paymail !== undefined ? paymail : handle;
+    const userHandle = paymail !== null && paymail !== undefined ? paymail?.split('@')[0] : handle;
     ei.dataset.handle = userHandle;
-    const m = document.createElement('div');
-    m.className = 'm';
+    const msgContent = document.createElement('span');
+    msgContent.className = 'm msg';
     let content = text.replace(urlRegex, url => { return `<a class="word-wrap" href='${url}' rel="noreferrer" target="_blank">${url}</a>` })
     if (content.includes('@')) {
         content = content.replace(tagRegex, tag => {
@@ -217,11 +215,19 @@ const addChatMsg = o => {
             return hashtag?.length > 1 ? `<a class="hash-tag" href='/chat/?c=${hashtag.slice(1)}' rel="noreferrer">${hashtag}</a>` : hashtag;
         })
     }
-    m.innerHTML = `${userHandle}: ${content}`;
+    const msgContainer = document.createElement('div');
+    msgContainer.className = 'msg-container';
+    const chatName = document.createElement('span');
+    chatName.className = 'm name';
+    chatName.innerHTML += `${userHandle} `;
+    msgContent.innerHTML += `${content}`;
     const t = document.createElement('a');
     t.href = txid ? `https://whatsonchain.com/tx/${txid}` : '/chat';
     t.target = '_blank';
     t.className = 't';
+    chatName.appendChild(msgContent);
+    msgContainer.appendChild(chatName);
+    msgContainer.appendChild(t);
     const c = document.createElement('i');
     c.className = 'nes-icon coin is-small chat-coin';
     c.id = txid;
@@ -242,7 +248,7 @@ const addChatMsg = o => {
     const secs = seconds < 10 ? `0${seconds}` : seconds;
     t.innerText = ` ${month}/${dateDay}/${year}, ${hour}:${mins}:${secs}`;
     row.appendChild(i);
-    row.appendChild(m);
+    row.appendChild(msgContainer)
     row.appendChild(t);
     row.appendChild(c);
     row.appendChild(ei);
@@ -318,8 +324,7 @@ const postChat = async() => {
         return;
     }
     if (cmd.startsWith('/price')) {
-        const symbols = ['BSV', 'SHUA', 'HST', 'USDC', 'BAMS', 'SAITO', 'POO', 'CIG', 'TESTNET', 'REX', 'DSV', 'FROGE',
-            'NOVO', 'TSC', 'AMT', 'WHST', 'MC', 'SHOW', 'OVTS'];
+        const symbols = ['BSV', 'SHUA', 'HST', 'USDC', 'BAMS', 'SAITO', 'POO', 'CIG', 'TESTNET', 'REX', 'TSC', 'WHST', 'MC'];
         let [p, symbol] = cmd.split(' ');
         if (!symbol || !symbols.includes(symbol.toUpperCase())) {
             let msg = `Available tokens:
@@ -446,7 +451,7 @@ Example:
     }
     const obj = {
         icon: localStorage.icon,
-        paymail: localStorage.paymail,
+        paymail: localStorage.paymail.split('@')[0],
         username: localStorage.username,
         text: chatInput.value,
         createdDateTime: new Date()

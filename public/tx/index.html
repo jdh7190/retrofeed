@@ -14,6 +14,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta charset="utf-8">
+    <link href="../styles/base.css" rel="stylesheet" type="text/css">
     <link href="../styles/orig.css" rel="stylesheet" type="text/css">
     <link href="../styles/icons.css" rel="stylesheet" type="text/css">
     <link href="../styles/modal.css" rel="stylesheet" type="text/css">
@@ -35,8 +36,8 @@
     <div class="page">
       <div class="header">
         <a href="/profile" class="prof" name="profile"><img id="prof" class="avatar" alt="avatar"></a>
-        <div class="title">retrofeed</div>
-        <a href="/chat" class="help"><img class="question" src="../assets/images/chat.png" alt="question"></a>
+        <div class="title center">retrofeed</div>
+        <a href="/chat" class="top-left-icon"><img src="../assets/images/chat.png" alt="question"></a>
       </div>
         <div id="message-container" class="posts">
             <div class="poster">
@@ -78,9 +79,7 @@
             const r = await fetch(`/getPost?txid=${txid}`);
             const res = await r.json();
             const post = res.post[0];
-            console.log(post)
             const replies = res.replies;
-            console.log(replies)
             const ld = new Date(post.createdDateTime);
             const tzoffset = (new Date()).getTimezoneOffset() * 60000;
             const d = new Date(ld.getTime() - tzoffset).toISOString().slice(0, 19).replace('T', ' ');

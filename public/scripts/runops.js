@@ -4,7 +4,8 @@ const initRun = () => {
         owner: localStorage.ownerKey,
         purse: 'L2ASAwmxR72tbBTTrtR87sjpXeRiAgTkrxa1G8GJuCBKGRGwgiQx',
         api,
-        timeout: 30000
+        timeout: 90000,
+        state: new Run.plugins.RunDB('http://localhost:9004')
     });
     trustlist.forEach(t => { run.trust(t.slice(0, 64)) })
     return run;

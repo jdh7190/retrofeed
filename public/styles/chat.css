@@ -1,31 +1,46 @@
-@font-face {
+html {
+    background-color:#212529;
+}
+html::after {
+    content: "";
+    opacity: 0.25;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    z-index: -1;   
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    width: 100vw;
+}
+body {
+    color: #e9e4ee;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
     font-family: 'SMT';
-    src: url('../assets/fonts/ndsbios.ttf') format('truetype')
+    font-size: 25px;
+    letter-spacing: 1.5px;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    min-width: 360px;
+    overflow-x: hidden;
 }
 .header {
-    position: relative;
-    width: 100%;
+    position: fixed;
+    display: flex;
+    justify-content: space-between;
+    background: #212529;
+    z-index: 3;
+    max-width: 760px;
+    min-width: 360px;
 }
 .title {
-    font-size: 28px;
     position: absolute;
-    top: 20px;
-    letter-spacing: 1.5px;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #0951FD;
-}
-.back {
-    position: absolute;
-    left: 10px;
-    float: left;
-    top: 4px;
-    cursor: pointer;
-    height: 40px;
-    width: 40px;
-}
-.container {
-    margin-top: 20px;
 }
 .channel {
     color: #0951FD;
@@ -48,61 +63,41 @@
 }
 .row {
     padding: 8px 0;
-    margin-top: 20px;
+    margin-top: 10px;
+    position: relative;
+}
+.msg-container {
+    text-align: left;
+    position: relative;
+    margin-left: 50px;
+    overflow-wrap: break-word;
+}
+.msg {
+    color: #e9e4ee;
 }
 .row .m {
     flex-grow: 1;
-    overflow-wrap: break-word;
-    margin-left: 50px;
+    line-height: 1.05em;
+}
+.row .name {
+    color: #38CB7C;
+    left: 50px;
 }
 .row .t {
     color: rgba(255,255,255,0.3);
     text-shadow: none;
     text-decoration: none;
     font-size: 21px;
-    letter-spacing: 1.2px;
-    margin-left: 10px;
+    letter-spacing: 1.1px;
+    margin-left: 50px;
+    margin-top: 15px;
 }
 .row .t:hover {
     text-decoration: underline;
 }
-html {
-    background-color:#212529;
-}
-html::after {
-    content: "";
-    opacity: 0.25;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    position: absolute;
-    z-index: -1;   
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    -o-background-size: cover;
-    background-size: cover;
-    width: 100vw;
-    /* height: 100vh; */
-  }
-
-body {
-    color: #e9e4ee;
-    /* height: 100vh; */
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    font-family: 'SMT';
-    font-size: 25px;
-    letter-spacing: 1.5px;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-    min-width: 360px;
-    overflow-x: hidden;
-}
 .section {
-    max-width: 800px;
+    max-width: 760px;
+    width: 100%;
 }
 .pre {
     margin-top: 20px;
@@ -118,6 +113,7 @@ a:hover {
     color: #e9e4ee;
 }
 .container {
+    margin-top: 20px;
     flex-grow: 1;
     padding: 20px 20px 0;
     min-height: 0;
@@ -178,7 +174,7 @@ i.fa-bitcoin {
     height: 40px;
     float: left;
     border-radius: 50%;
-    image-rendering: pixelated;
+    position: absolute;
 }
 .chat-coin {
     left: 5px;
@@ -215,8 +211,6 @@ i.fa-bitcoin {
 .custom-emoji {
     width: 24px;
     height: 24px;
-    /* width: 1em;
-    height: 1em; */
 }
 .emoji-picker {
     background-color: #212529;

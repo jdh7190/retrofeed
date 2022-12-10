@@ -153,11 +153,9 @@ const getRetroPosts = async (selOrder, handle) => {
     loadingDlg('Blowing in the cartridge');
     document.getElementById('message-container').innerHTML = "";
     const posts = await getPosts(selOrder, handle);
-    console.log({posts})
     const earliestPostCreatedDateTime = posts[posts.length-1]?.createdDateTime;
     if (localStorage?.paymail && earliestPostCreatedDateTime) {
         myLikes = await getMyLikes(earliestPostCreatedDateTime);
-        console.log(myLikes)
     }
     for (let i = 0; i < posts.length; i++) {
         createRetroPost(posts[i]);

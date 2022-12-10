@@ -4,6 +4,7 @@
     <title>Profile - retrofeed</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
+    <link href="../styles/base.css" rel="stylesheet" type="text/css">
     <link href="../styles/profile.css" rel="stylesheet" type="text/css">
     <link href="../styles/modal.css" rel="stylesheet" type="text/css">
     <link rel="manifest" href="../manifest.json">
@@ -21,8 +22,8 @@
     <div class="page">
         <div class="header">
             <a href="/profile" class="prof"><img id="prof" class="avatar"></a>
-            <div class="title">Profile</div>
-            <a class="back" onclick="goBack()"><img src="../assets/images/back.png"></a>
+            <div class="title center">Profile</div>
+            <a class="top-left-icon" onclick="goBack()"><img src="../assets/images/back.png"></a>
         </div>
         <div class="profile center">
             <div class="inventory" id="inventory">
@@ -33,7 +34,7 @@
                 </div>
             </div>
             <div class="btns center" id="login">
-                <p>Login</p>
+                <!-- <p>Login</p> -->
                 <button class="btn handcash" onclick="hcLogin()">
                     <img src="../assets/images/hc_icon.png" class="hcsvg">
                     <span class="btn-text">HandCash</span>

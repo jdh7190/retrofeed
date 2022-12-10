@@ -1,9 +1,11 @@
-var CACHE_NAME = 'v0.35';
+var CACHE_NAME = 'v0.37';
 var urlsToCache = [
   '/index.html',
   '/manifest.json',
   '/info/index.html',
   '/profile/index.html',
+  '/reader/index.html',
+  '/tx/index.html',
   '/scripts/api.js',
   '/scripts/bSocial.js',
   '/scripts/bsv-ecies.min.js',
@@ -21,6 +23,7 @@ var urlsToCache = [
   '/scripts/profile.js',
   '/scripts/readability.js',
   '/scripts/retro.js',
+  '/styles/base.css',
   '/styles/chat.css',
   '/styles/icons.css',
   '/styles/info.css',
