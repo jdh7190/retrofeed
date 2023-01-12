@@ -24,9 +24,28 @@
     color: #e9e4ee;
     font-size: 25px;
 }
+.modal-img {
+    display: none;
+    height: 128px;
+    width: 128px;
+}
+.asset-img {
+    height: 128px;
+    width: 128px;
+    object-fit: contain;
+}
 .modal-text {
     padding: 10px;
     width: 90%;
+}
+.mon-sound {
+    position: relative;
+    display: none;
+}
+.tx {
+    float: left;
+    font-size: 22px;
+    cursor: pointer;
 }
 .close {
     color: #e9e4ee;

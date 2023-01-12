@@ -8,6 +8,19 @@ const bsv = require('bsv');
 const Message = require('bsv/message');
 const { Readability } = require('@mozilla/readability');
 const { HandCashConnect } = require('@handcash/handcash-connect');
+const Run = require('run-sdk');
+const run = new Run({
+    owner: process.env.CONTRACT_OWNER_KEY,
+    purse: process.env.PURSE_KEY,
+    trust: '*',
+    timeout: 60000,
+    api: process.env.RUN_API,
+    state: new Run.plugins.RunDB(process.env.STATE_API_URL),
+    app: process.env.APP_NAME
+});
+bsv.Transaction.DUST_AMOUNT = 100;
+const monHelpers = require('./monhelpers');
+const runops = require('./runops');
 const handCashConnect = new HandCashConnect({appId: process.env.APP_ID, appSecret: process.env.APP_SECRET});
 const JSDOM = require('jsdom').JSDOM;
 const app = express(), port = process.env.SERVER_PORT;
@@ -103,8 +116,101 @@ app.post('/hcaccount', async(req, res) => {
         res.send({ error: 'No profile found.' });
     }
 });
-app.post('/pixelmongenmint', async(req, res) => {
-    console.log(req.body);
+class retroPurse {
+    constructor(utxos, purseKey, purseAddress) {
+        this.utxos = utxos
+        this.purseKey = purseKey
+        this.purseAddress = purseAddress
+    }
+    pay(rawtx) {
+        const tx = bsv.Transaction(rawtx);
+        tx.from(this.utxos);
+        tx.change(this.purseAddress).sign(this.purseKey);
+        return tx.toString();
+    }
+}
+const buildBTx = async(obj, purseKey, purseAddress, utxos) => {
+    const data = ['19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', obj.buf, `${obj.filetype}/${obj.ext}`, obj.encoding, `${obj.filename}.${obj.ext}`];
+    const tx = bsv.Transaction();
+    tx.from(utxos);
+    tx.addSafeData(data);
+    tx.change(purseAddress);
+    tx.sign(purseKey);
+    const txid = await run.blockchain.broadcast(tx.toString());
+    return txid;
+}
+const mint = async(bTxid, audioTxid, ownerAddress, name, type, mintUTXOs) => {
+    run.purse = new retroPurse(mintUTXOs, process.env.MINTER_KEY, process.env.MINTER_ADDRESS);
+    const contract = await run.load(process.env.SHUA_MON_CONTRACT);
+    const metadata = { image: `b://${bTxid}`, audio: `b://${audioTxid}`, name, type };
+    const parsedValues = monHelpers.txidParse(bTxid);
+    const strength = monHelpers.evalGrowth(parsedValues.str);
+    const vitality = monHelpers.evalGrowth(parsedValues.vit);
+    const agility = monHelpers.evalGrowth(parsedValues.agl);
+    const intelligence = monHelpers.evalGrowth(parsedValues.int);
+    const luck = monHelpers.evalGrowth(parsedValues.luc);
+    const spirit = monHelpers.evalGrowth(parsedValues.spr);
+    const stats = { strength, vitality, agility, intelligence, luck, spirit }
+    const tx = new Run.Transaction();
+    tx.update(() => { new contract(ownerAddress, metadata, stats) })
+    /* const raw = await tx.export();
+    const bsvtx = bsv.Transaction(raw); */
+    const txid = await tx.publish();
+    console.log(`Minted at:`, txid);
+}
+const extractUTXOs = (rawtx, addr) => {
+    try {
+        const tx = new bsv.Transaction(rawtx);
+        let utxos = [], vout = 0;
+        tx.outputs.forEach(output => {
+            let satoshis = output.satoshis;
+            let script = new bsv.Script.fromBuffer(output._scriptBuffer);
+            if (script.isSafeDataOut()) { vout++; return }
+            let pkh = bsv.Address.fromPublicKeyHash(script.getPublicKeyHash());
+            let address = pkh.toString();
+            if (address === addr) {
+                utxos.push({satoshis, txid: tx.hash, vout, script: script.toHex()});
+            }
+            vout++;
+        });
+        return utxos;
+    }
+    catch(error) {
+        console.log({error});
+        return [];
+    }
+}
+app.post('/mintSHUAmon', async(req, res) => {
+    const { hcauth, handle, ownerAddress, monName } = req.body;
+    try {
+        const cloudAccount = handCashConnect.getAccountFromAuthToken(hcauth);
+        const paymentParameters = {
+            appAction: 'Mint SHUAmon',
+            description: 'Mint a SHUAmon👾',
+            payments: [
+                { destination: 'shua', currencyCode: 'USD', sendAmount: 0.0025 },
+                { destination: process.env.PURSE_ADDRESS, currencyCode: 'BSV', sendAmount: 0.0000025 },
+                { destination: process.env.MINTER_ADDRESS, currencyCode: 'BSV', sendAmount: 0.000005 },
+                { destination: process.env.AUDIO_ADDRESS, currencyCode: 'BSV', sendAmount: 0.0000075 },
+            ]
+        };
+        const paymentResult = await cloudAccount.wallet.pay(paymentParameters);
+        if (paymentResult.transactionId) {
+            await runops.postTxToDB(process.env.STATE_API_URL, paymentResult.transactionId, paymentResult.rawTransactionHex);
+            const monsterData = await monHelpers.generateImage('staging', 16);
+            const audioData = await monHelpers.generateAudio('audio');
+            const aUTXOs = extractUTXOs(paymentResult.rawTransactionHex, process.env.AUDIO_ADDRESS);
+            const bUTXOs = extractUTXOs(paymentResult.rawTransactionHex, process.env.PURSE_ADDRESS);
+            const mintUTXOs = extractUTXOs(paymentResult.rawTransactionHex, process.env.MINTER_ADDRESS);
+            const aTxid = await buildBTx(audioData, process.env.AUDIO_KEY, process.env.AUDIO_ADDRESS, aUTXOs);
+            const bTxid = await buildBTx(monsterData, process.env.PURSE_KEY, process.env.PURSE_ADDRESS, bUTXOs);
+            await mint(bTxid, aTxid, ownerAddress, monName, monsterData.type, mintUTXOs);
+            res.send({paymentResult});
+        }
+    } catch(e) {
+        console.log(e);
+        res.send({error:e})
+    }
 })
 const bPostIdx = async payload => {
     try {

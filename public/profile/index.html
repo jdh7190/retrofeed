@@ -11,12 +11,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/uyouthe/pwacss/pwacss.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap">
     <link rel="apple-touch-icon" href="../assets/images/icon_192_noback.png">
-    <script src="../scripts/bsv.browser.min.js"></script>
     <script src="../scripts/helpers.js"></script>
     <script src="../scripts/config.js"></script>
     <script src="../scripts/api.js"></script>
-    <script src="../scripts/run.browser.min.js"></script>
-    <script src="../scripts/runops.js"></script>
    </head>
    <body>
     <div class="page">
@@ -27,14 +24,13 @@
         </div>
         <div class="profile center">
             <div class="inventory" id="inventory">
-                <p>Inventory</p>
+                <div class="invent-label">Details</div>
                 <div class="items" id="itemList"></div>
                 <div class="details" id="ownerDetails">
-                    <p>Owner Address</p>
+                    <span>Owner Address</span>
                 </div>
             </div>
             <div class="btns center" id="login">
-                <!-- <p>Login</p> -->
                 <button class="btn handcash" onclick="hcLogin()">
                     <img src="../assets/images/hc_icon.png" class="hcsvg">
                     <span class="btn-text">HandCash</span>
@@ -44,7 +40,7 @@
                 <span>Logout</span>
             </button>
         </div>
-        <div class="bottom-section">
+        <div class="bottom-section center">
             <a href="/info">Info</a>
             <a href="/privacy">Privacy Policy</a>
         </div>
@@ -57,8 +53,5 @@
     </div>
     </body>
     <script src="../scripts/html.js"></script>
-    <script>
-        var loadingText = '', loadingPost = false;
-    </script>
     <script src="../scripts/profile.js"></script>
 </html>

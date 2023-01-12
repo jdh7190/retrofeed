@@ -1,32 +1,11 @@
+body {
+    color: #e9e4ee;
+}
 .top-left-icon {
     left: 10px;
 }
 .prof {
     right: 10px;
-}
-.text {
-    letter-spacing: 1.5px;
-    line-height: 1.6;
-    color: #e9e4ee;
-    text-align: center;
-}
-.inventory {
-    position: relative;
-    border: 5px #e9e4ee solid;
-    border-radius: 5px;
-    display: block;
-}
-.item {
-    position: relative;
-}
-.items {
-
-}
-.icon {
-    width: 64px;
-    height: 64px;
-    position: absolute;
-    left: -30px;
 }
 .profile {
     position: relative;
@@ -72,13 +51,13 @@
     left: 11px;
 }
 .details {
-    display: none;
-    margin-top: 20px;
+    display: block;
+    margin: 10px;
     font-size: 22px;
 }
 .bottom-section {
-    position: fixed;
-    bottom: 10px;
-    left: 50%;
-    transform: translate(-50%, 0);
+    position: relative;
+    margin-top: 50px;
+    /* left: 50%;
+    transform: translate(-50%, 0); */
 }

@@ -1,6 +1,5 @@
 const chatApp = new BSocial(APP);
-var loadingPost = false, loadingText = '', reactions = [];
-prof.src = localStorage?.icon ? localStorage.icon : '../assets/images/user.png';
+var reactions = [];
 const chatInput = document.getElementById('chatInput');
 const chatBtn = document.getElementById('chatBtn');
 const checkPost = () => {
@@ -154,16 +153,23 @@ const addEphemeralMsg = (text, innerHTML) => {
     const i = document.createElement('img');
     i.src = '../assets/images/icon_192_noback.png';
     i.className = 'chat-icon';
-    const m = document.createElement('div');
-    m.className = 'm';
+    const msgContainer = document.createElement('div');
+    msgContainer.className = 'msg-container';
+    const msgContent = document.createElement('span');
+    msgContent.className = 'm msg';
+    const chatName = document.createElement('span');
+    chatName.className = 'm name';
+    chatName.innerHTML += `retrofeed `;
+    chatName.appendChild(msgContent);
+    msgContainer.appendChild(chatName);
     if (text) {
         if (innerHTML) {
-            m.innerHTML = text;
+            msgContent.innerHTML = text;
         } else {
-            m.innerText = text;
+            msgContent.innerText = text;
         }
     } else {
-        m.innerText = `COMMANDS
+        msgContent.innerText = `COMMANDS
 
 Channels:
 /list - display available channels on retrofeed
@@ -183,7 +189,7 @@ Others:
 /rain - airdrop satoshis to each person who posted in last 50 messages`;
     }
     row.appendChild(i);
-    row.appendChild(m);
+    row.appendChild(msgContainer);
     chatCon.appendChild(row);
     return row;
 }
@@ -324,7 +330,7 @@ const postChat = async() => {
         return;
     }
     if (cmd.startsWith('/price')) {
-        const symbols = ['BSV', 'SHUA', 'HST', 'USDC', 'BAMS', 'SAITO', 'POO', 'CIG', 'TESTNET', 'REX', 'TSC', 'WHST', 'MC'];
+        const symbols = ['BSV', 'SHUA', 'HST', 'USDC', 'BAMS', 'SAITO', 'POO', 'TESTNET', 'REX', 'TSC', 'WHST', 'pow.co', 'REXXIE'];
         let [p, symbol] = cmd.split(' ');
         if (!symbol || !symbols.includes(symbol.toUpperCase())) {
             let msg = `Available tokens:

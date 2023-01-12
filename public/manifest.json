@@ -23,7 +23,7 @@
         "name": "Chat",
         "short_name": "Chat",
         "url": "/chat",
-        "icons": [{ "src": "/assets/images/chat.png", "sizes": "96x96" }]
+        "icons": [{ "src": "/assets/images/chat_icon.png", "sizes": "96x96" }]
     },
     {
       "name": "Feed",

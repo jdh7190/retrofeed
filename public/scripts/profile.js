@@ -1,83 +1,16 @@
 const login = document.getElementById('login');
-const inventory = document.getElementById('inventory');
-const itemList = document.getElementById('itemList');
 const ownerDetails = document.getElementById('ownerDetails');
-const createItem = item => {
-    const p = document.createElement('p');
-    const span = document.createElement('span');
-    span.className = 'item text';
-    if (item?.img) {
-        span.appendChild(item.img)
-    }
-    span.innerHTML += item.text;
-    if (item?.amount) {
-        span.innerHTML += ` &times; ${item.amount}`;
-    }
-    p.appendChild(span);
-    itemList.appendChild(p);
-}
-const nameHelper = metadata => {
-    return metadata?.name || metadata?.symbol;
-}
-const imageHelper = (metadata, origin) => {
-    console.log(metadata)
-    const img = document.createElement('img');
-    img.className = 'icon';
-    if (metadata?.image) {
-        if (metadata.image === '_o1') {
-            img.src = `https://berry2.relayx.com/${origin.slice(0,64)}_o1`;
-            return img;
-        }
-        img.src = `data:${metadata.image.mediaType};base64, ${metadata.image.base64Data}`;
-        return img;
-    }
-    if (metadata?.emoji) {
-        const s = document.createElement('span');
-        s.innerText = metadata.emoji;
-        return s;
-    }
-    return img;
-}
-const inventoryManager = async() => {
-    const run = initRun();
-    loadingDlg('Searching bag');
-    const utxos = []; //await run.blockchain.utxos(run.owner.address);
-    if (utxos?.length) {
-        for (const utxo of utxos) {
-            const jig = await run.load(`${utxo.txid}_o${utxo.vout}`);
-            const name = nameHelper(jig.constructor.metadata);
-            const item = {
-                text: name,
-                amount: jig?.amount || 1
-            }
-            if (jig?.metadata?.image) {
-                const img = imageHelper(jig.metadata, jig.origin);
-                item.img = img;
-            } else {
-                const img = imageHelper(jig.constructor.metadata, jig.constructor.origin);
-                item.img = img;
-            }
-            createItem(item);
-        }
-    } else {
-        const noItems = { text: 'No items.' };
-        createItem(noItems);
-    }
-    /* const p = document.createElement('p');
-    p.innerText = localStorage.ownerAddress;
-    ownerDetails.appendChild(p); */
-    loadingDlg();
-}
+const p = document.createElement('span');
+p.className = 'owner-address';
+p.innerText = localStorage.ownerAddress;
+ownerDetails.appendChild(p);
 if (localStorage?.icon) {
     login.style.display = 'none';
-    prof.src = localStorage.icon;
-    inventoryManager();
-    //inventory.style.display = 'block';
+    inventory.style.display = 'none';
 
 } else {
     login.style.display = 'block';
     inventory.style.display = 'none';
-    prof.src = '../assets/images/userprofile.png';
 }
 const getHcProfile = async() => {
     if (location.href.includes('authToken')) {
@@ -115,7 +48,8 @@ getHcProfile();
 const hcLogin = () => {
     if (!localStorage.hcauth) {
         localStorage.clear();
-        location.href = location.href.includes('localhost') ? `https://app.handcash.io/#/authorizeApp?appId=62c4621d8af65d4fbfd52f80` : `https://app.handcash.io/#/authorizeApp?appId=632dcca7fb8da441d62e31f9`;
+        const appId = location.href.includes('localhost') ? '62c4621d8af65d4fbfd52f80' : '632dcca7fb8da441d62e31f9';
+        location.href = `https://app.handcash.io/#/authorizeApp?referrerHandle=shua&appId=${appId}`;
     }
     else { location.href = '/' }
 }
