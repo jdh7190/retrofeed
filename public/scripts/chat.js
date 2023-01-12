@@ -38,6 +38,7 @@ const getChats = async() => {
         return !c?.handle.includes('@') ? `${c.handle}@handcash.io` : c.handle;
     }));
     setOfHandles = Array.from(handlesSet);
+    setOfHandles = setOfHandles.filter(handle => handle.length < 26);
     if (chats?.length) {
         const idx = chats.length - 1;
         reactions = await getChatReactions(chats[idx].createdDateTime);
