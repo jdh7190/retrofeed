@@ -8,7 +8,7 @@ const bsv = require('bsv');
 const Message = require('bsv/message');
 const { Readability } = require('@mozilla/readability');
 const { HandCashConnect } = require('@handcash/handcash-connect');
-const Run = require('run-sdk');
+/* const Run = require('run-sdk');
 const run = new Run({
     owner: process.env.CONTRACT_OWNER_KEY,
     purse: process.env.PURSE_KEY,
@@ -17,10 +17,10 @@ const run = new Run({
     api: process.env.RUN_API,
     state: new Run.plugins.RunDB(process.env.STATE_API_URL),
     app: process.env.APP_NAME
-});
+}); */
 bsv.Transaction.DUST_AMOUNT = 100;
-const monHelpers = require('./monhelpers');
-const runops = require('./runops');
+//const monHelpers = require('./monhelpers');
+//const runops = require('./runops');
 const handCashConnect = new HandCashConnect({appId: process.env.APP_ID, appSecret: process.env.APP_SECRET});
 const JSDOM = require('jsdom').JSDOM;
 const app = express(), port = process.env.SERVER_PORT;
@@ -116,7 +116,7 @@ app.post('/hcaccount', async(req, res) => {
         res.send({ error: 'No profile found.' });
     }
 });
-class retroPurse {
+/* class retroPurse {
     constructor(utxos, purseKey, purseAddress) {
         this.utxos = utxos
         this.purseKey = purseKey
@@ -153,11 +153,9 @@ const mint = async(bTxid, audioTxid, ownerAddress, name, type, mintUTXOs) => {
     const stats = { strength, vitality, agility, intelligence, luck, spirit }
     const tx = new Run.Transaction();
     tx.update(() => { new contract(ownerAddress, metadata, stats) })
-    /* const raw = await tx.export();
-    const bsvtx = bsv.Transaction(raw); */
     const txid = await tx.publish();
     console.log(`Minted at:`, txid);
-}
+} */
 const extractUTXOs = (rawtx, addr) => {
     try {
         const tx = new bsv.Transaction(rawtx);
