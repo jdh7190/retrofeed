@@ -228,7 +228,7 @@ const bPostIdx = async payload => {
 const getReplyHandle = async txid => {
     const repliedStmt = `SELECT handle from retro.posts where txid = '${txid}'`;
     const rs = await sqlDB.sqlPromise(repliedStmt, 'Error querying for replied handle.', `No handle found for ${txid}.`, pool);
-    return rs[0].handle;
+    return rs[0]?.handle;
 }
 const replyIdx = async payload => {
     try {
