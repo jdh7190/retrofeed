@@ -545,7 +545,7 @@ app.get('/getPosts', async(req, res) => {
     else { orderBy = 'replyCount desc' }
     const handleClause = handle ? ('where posts.handle = ' + "'" + handle + "'") : '';
     try {
-        const stmt = `SELECT posts.createdDateTime, posts.id, posts.handle, posts.txid, posts.content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, posts.imgs FROM retro.posts
+        const stmt = `SELECT posts.createdDateTime, posts.blocktime, posts.handle, posts.txid, posts.content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, posts.imgs FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
             left outer join retro.users on users.handle = posts.handle
         ${handleClause}
@@ -554,7 +554,8 @@ app.get('/getPosts', async(req, res) => {
         const r = await sqlDB.sqlPromise(stmt, 'Failed to query for posts.', 'No posts found.', pool);
         const rStmt = `SELECT count(replies.id) as replyCount, posts.txid FROM retro.posts
             left outer join retro.replies on posts.txid = replies.repliedTxid
-        group by posts.id order by posts.createdDateTime desc LIMIT 50`;
+            where replies.blocktime >= ${r[r.length-1].blocktime}
+        group by posts.id`;
         const rs = await sqlDB.sqlPromise(rStmt, '', '', pool);
         const replies = rs.filter(reply => reply.replyCount > 0);
         replies.forEach(reply => {
