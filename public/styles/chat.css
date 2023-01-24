@@ -41,6 +41,7 @@ body {
 }
 .title {
     position: absolute;
+    width: 250px;
 }
 .channel {
     color: #0951FD;

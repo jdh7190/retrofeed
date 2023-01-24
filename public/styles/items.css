@@ -44,3 +44,27 @@ body {
     color: #e9e4ee;
     text-align: center;
 }
+.tx {
+    display: none;
+}
+.info {
+    left: 25px;
+    position: relative;
+}
+.info-field {
+    margin: 10px;
+}
+.stats {
+    position: relative;
+    left: 10px;
+    width: 180px;
+    margin: 25px;
+    top: 10px;
+    display: none;
+}
+.stat {
+    margin: 5px;
+}
+.modal-content {
+    max-width: 360px;
+}

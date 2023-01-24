@@ -64,6 +64,8 @@ const createRetroPost = (post, recent, isReply) => {
     if (isReply) {
         retropost.className += ` reply-post`;
     }
+    const isRelayXHandle = post.handle.substring(0,1) === '1' ? true : false;
+    const paymentAlias = isRelayXHandle ? `${post.handle.slice(1)}@relayx.io` : `${post.handle}@handcash.io`;
     const profile = document.createElement('div');
     profile.className = 'profile';
     const profileImg = document.createElement('img');
@@ -82,13 +84,13 @@ const createRetroPost = (post, recent, isReply) => {
     const coin = document.createElement('i');
     coin.className = `nes-icon coin is-medium`;
     coin.onclick = tip;
-    coin.setAttribute('data-handle', post.handle);
+    coin.setAttribute('data-handle', paymentAlias);
     coin.setAttribute('data-txid', post.txid);
     if (!isReply) {
         const reply = document.createElement('img');
-        reply.src = location.href.includes(`/tx/`) ? '../assets/images/reply.png' : './assets/images/reply.png';
+        reply.src = `${location.origin}/assets/images/reply.png`;
         reply.className = 'reply';
-        reply.setAttribute('data-handle', post.handle);
+        reply.setAttribute('data-handle', paymentAlias);
         reply.setAttribute('data-txid', post.txid);
         reply.onclick = () => location.href = `/tx/?txid=${post.txid}`;
         retropost.appendChild(reply);
@@ -97,13 +99,13 @@ const createRetroPost = (post, recent, isReply) => {
     const content = document.createElement('p');
     content.className = 'postContent urlFormat';
     if (post.imgs) {
-        content.innerHTML = `<img src="${post.imgs}" class="imgfile" alt="imgfile">`
+        //content.innerHTML = `<img src="${post.imgs}" class="imgfile" alt="imgfile">`
     }
     retropost.appendChild(content)
     const heart = document.createElement('i');
     heart.className = 'like-heart nes-icon heart is-medium is-empty';
     heart.id = post.txid;
-    heart.data = post.handle;
+    heart.data = paymentAlias;
     const foundLike = myLikes.length ? myLikes.findIndex(l => l.likedTxid === post.txid) : -1;
     foundLike < 0 ? heart.addEventListener('click', like) : heart.className = 'like-heart nes-icon heart is-medium';
     item.appendChild(heart);
@@ -133,12 +135,23 @@ const createRetroPost = (post, recent, isReply) => {
     txLink.target = '_blank';
     txLink.rel = 'noreferrer';
     item.appendChild(txLink);
-    profileImg.src = post.icon !== 'null' ? post.icon : 'assets/images/question_block_32.png';
+    const avatar = isRelayXHandle ? `https://a.relayx.com/u/${paymentAlias}` : post.icon;
+    profileImg.src = post.icon !== 'null' ? avatar : 'assets/images/question_block_32.png';
     userLink.href = `${location.origin}/?handle=${post.handle}`;
-    userLink.innerText = `${post?.username || ''} $${post?.handle}`;
+    userLink.innerText = `${post?.username || ''} ${isRelayXHandle ? '' : '$'}${post?.handle}`;
     manageContent(post?.content, content);
     if (post?.imgs) {
-        content.innerHTML += `<img src="${post.imgs}" class="imgfile" alt="imgfile">`
+        if (post.imgs.length === 64 || post.imgs.length === 67) {
+            const img = document.createElement('img');
+            img.src = `${location.origin}/images/${post.imgs}.png`;
+            img.className = 'imgfile';
+            img.alt = 'imgfile';
+            const cLink = document.createElement('a');
+            cLink.href = `https://club.relayx.com/p/${post.txid}`;
+            cLink.target = '_blank';
+            cLink.appendChild(img);
+            content.appendChild(cLink);
+        } else { content.innerHTML += `<img src="${post.imgs}" class="imgfile" alt="imgfile">` }
     }
     numLikes.innerText = post?.likeCount || 0;
     timeagoSpan.innerText = timeago(new Date(post.createdDateTime));
@@ -152,10 +165,10 @@ const createRetroPost = (post, recent, isReply) => {
 const getRetroPosts = async (selOrder, handle) => {
     loadingDlg('Blowing in the cartridge');
     document.getElementById('message-container').innerHTML = "";
-    const posts = await getPosts(selOrder, handle);
-    const earliestPostCreatedDateTime = posts[posts.length-1]?.createdDateTime;
-    if (localStorage?.paymail && earliestPostCreatedDateTime) {
-        myLikes = await getMyLikes(earliestPostCreatedDateTime);
+    const posts = await getPosts(selOrder, handle); 
+    const d = tzCreatedDateTime(posts[posts.length-1]?.createdDateTime);
+    if (localStorage?.paymail && d) {
+        myLikes = await getMyLikes(d);
     }
     for (let i = 0; i < posts.length; i++) {
         createRetroPost(posts[i]);

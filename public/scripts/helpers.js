@@ -221,3 +221,8 @@ const extractMentions = text => {
     }
     return mentions;
 }
+const tzCreatedDateTime = createdDateTime => {
+    const ld = new Date(createdDateTime);
+    const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+    return new Date(ld.getTime() - tzoffset).toISOString().slice(0, 19).replace('T', ' ');
+}

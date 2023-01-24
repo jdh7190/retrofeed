@@ -8,7 +8,13 @@ const tPost = document.getElementById('tPost');
 const tipSection = document.getElementById('tipSection');
 const title = document.getElementsByClassName('title')[0];
 var loadingText = '', loadingPost = false;
-title.onclick = () => location.href = location.href;
+title.onclick = () => {
+    if (location.href.includes('tx')) {
+        location.href = '/';
+        return;
+    }
+    location.href = location.href
+}
 span.onclick = () => {
     modal.style.display = "none";
     if (tipSection) {

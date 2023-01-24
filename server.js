@@ -18,7 +18,7 @@ const run = new Run({
     state: new Run.plugins.RunDB(process.env.STATE_API_URL),
     app: process.env.APP_NAME
 }); */
-bsv.Transaction.DUST_AMOUNT = 100;
+//bsv.Transaction.DUST_AMOUNT = 100;
 //const monHelpers = require('./monhelpers');
 //const runops = require('./runops');
 const handCashConnect = new HandCashConnect({appId: process.env.APP_ID, appSecret: process.env.APP_SECRET});
@@ -178,7 +178,7 @@ const extractUTXOs = (rawtx, addr) => {
         return [];
     }
 }
-app.post('/mintSHUAmon', async(req, res) => {
+/* app.post('/mintSHUAmon', async(req, res) => {
     const { hcauth, handle, ownerAddress, monName } = req.body;
     try {
         const cloudAccount = handCashConnect.getAccountFromAuthToken(hcauth);
@@ -195,7 +195,7 @@ app.post('/mintSHUAmon', async(req, res) => {
         const paymentResult = await cloudAccount.wallet.pay(paymentParameters);
         if (paymentResult.transactionId) {
             await runops.postTxToDB(process.env.STATE_API_URL, paymentResult.transactionId, paymentResult.rawTransactionHex);
-            const monsterData = await monHelpers.generateImage('staging', 16);
+            const monsterData = await monHelpers.generateImage('staging', 16, paymentResult.transactionId);
             const audioData = await monHelpers.generateAudio('audio');
             const aUTXOs = extractUTXOs(paymentResult.rawTransactionHex, process.env.AUDIO_ADDRESS);
             const bUTXOs = extractUTXOs(paymentResult.rawTransactionHex, process.env.PURSE_ADDRESS);
@@ -209,13 +209,14 @@ app.post('/mintSHUAmon', async(req, res) => {
         console.log(e);
         res.send({error:e})
     }
-})
+}) */
 const bPostIdx = async payload => {
     try {
-        const { content, txid, rawtx, handle, image } = payload;
-        const flds = ['content', 'txid', 'rawtx', 'handle', 'imgs'];
+        const { content, txid, rawtx, handle, image, app, context, jig, paymail, club } = payload;
+        const flds = ['content', 'txid', 'rawtx', 'handle', 'imgs', 'app', 'context', 'jig', 'paymail', 'club', 'blocktime'];
         const contentText = helpers.replaceAll(content, "'", "''");
-        const vls = [contentText, txid, rawtx, handle, image || '']
+        let blocktime = payload?.blocktime > 0 ? payload.blocktime : Math.floor(Date.now() / 1000);
+        const vls = [contentText, txid, rawtx, handle, image || '', app, context || '', jig || '', paymail, club || '', blocktime]
         const stmt = sqlDB.insert('posts', flds, vls, true);
         const r = await sqlDB.sqlPromise(stmt, 'Failed to insert bPost.', '', pool);
         return r;
@@ -231,10 +232,15 @@ const getReplyHandle = async txid => {
 }
 const replyIdx = async payload => {
     try {
-        const { content, txid, rawtx, handle, image, replyTxid, replyHandle } = payload;
-        const flds = ['content', 'txid', 'rawtx', 'handle', 'imgs', 'repliedTxid', 'repliedHandle'];
+        const { content, txid, rawtx, handle, image, replyTxid } = payload;
+        const flds = ['content', 'txid', 'rawtx', 'handle', 'imgs', 'repliedTxid', 'repliedHandle', 'blocktime'];
         const contentText = helpers.replaceAll(content, "'", "''");
-        const vls = [contentText, txid, rawtx, handle, image || '', replyTxid, replyHandle]
+        let replyHandle = payload?.replyHandle;
+        let blocktime = payload?.blocktime > 0 ? payload.blocktime : Math.floor(Date.now() / 1000);
+        if (!replyHandle || replyHandle === null) {
+            replyHandle = await getReplyHandle(replyTxid);
+        }
+        const vls = [contentText, txid, rawtx, handle, image || '', replyTxid, replyHandle || '', blocktime];
         const stmt = sqlDB.insert('replies', flds, vls, true);
         const r = await sqlDB.sqlPromise(stmt, 'Failed to insert replies.', '', pool);
         return r;
@@ -423,9 +429,10 @@ app.post('/hcPost', async(req, res) => {
         }
         if (replyPayload?.replyTxid) {
             const replyHandle = await getReplyHandle(replyPayload.replyTxid);
-            replyPayload.replyHandle = replyHandle;
+            const rHandle = replyHandle.substring(0,1) === '1' ? `${replyHandle.slice(1)}@relayx.io` : replyHandle;
+            replyPayload.replyHandle = rHandle;
             paymentParameters.payments = [
-                { destination: replyHandle, currencyCode: 'USD', sendAmount: 0.009 },
+                { destination: rHandle, currencyCode: 'USD', sendAmount: 0.009 },
                 { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: 0.001 }
             ]
         }
@@ -460,7 +467,7 @@ app.post('/hcPost', async(req, res) => {
             const postHandle = req.body.handle;
             switch(action) {
                 case 'post':
-                    await bPostIdx({ content: content.text, image: content.image, handle: postHandle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex });
+                    await bPostIdx({ content: content.text, image: content.image, handle: postHandle, txid: paymentResult.transactionId, rawtx: paymentResult.rawTransactionHex, app: 'retrofeed.me', paymail: `${postHandle}@handcash.io` });
                     break;
                 case 'reply':
                     await replyIdx({
@@ -533,17 +540,17 @@ app.post('/rain', async(req, res) => {
 app.get('/getPosts', async(req, res) => {
     const { order, handle } = req.query;
     let orderBy;
-    if (order === '0') { orderBy = 'createdDateTime' }
-    else if (order === '1') { orderBy = 'likeCount' }
-    else { orderBy = 'replyCount' }
+    if (order === '0') { orderBy = 'blocktime desc, posts.id desc' }
+    else if (order === '1') { orderBy = 'likeCount desc' }
+    else { orderBy = 'replyCount desc' }
     const handleClause = handle ? ('where posts.handle = ' + "'" + handle + "'") : '';
     try {
-        const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, posts.content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, posts.imgs FROM retro.posts
+        const stmt = `SELECT posts.createdDateTime, posts.id, posts.handle, posts.txid, posts.content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, posts.imgs FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
-            join retro.users on users.handle = posts.handle
+            left outer join retro.users on users.handle = posts.handle
         ${handleClause}
         group by posts.id
-        order by ${orderBy} desc LIMIT 50`;
+        order by ${orderBy} LIMIT 50`;
         const r = await sqlDB.sqlPromise(stmt, 'Failed to query for posts.', 'No posts found.', pool);
         const rStmt = `SELECT count(replies.id) as replyCount, posts.txid FROM retro.posts
             left outer join retro.replies on posts.txid = replies.repliedTxid
@@ -595,13 +602,13 @@ app.get('/getPost', async(req, res) => {
     try {
         const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, imgs FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
-            join retro.users on users.handle = posts.handle
+            left outer join retro.users on users.handle = posts.handle
         where posts.txid = '${req.query.txid}'
         group by posts.id order by createdDateTime desc`;
         const r = await sqlDB.sqlPromise(stmt, `Failed to get post for txid ${txid}.`, `No post for txid ${txid}.`, pool);
         const replyStmt = `SELECT replies.txid, replies.handle, content, imgs, replies.createdDateTime, count(likes.id) as likeCount, users.name as username, users.avatarURL as icon FROM retro.replies
             left outer join retro.likes on replies.txid = likes.likedTxid
-            join retro.users on retro.users.handle = replies.handle
+            left outer join retro.users on retro.users.handle = replies.handle
             where repliedTxid = '${txid}'
             group by replies.id
             order by likeCount asc`;
@@ -665,8 +672,20 @@ app.get('/readability', async(req, res) => {
 });
 app.post('/bPost', async(req, res) => {
     try {
+        const { txid } = req.body;
         const r = await bPostIdx(req.body);
-        if (r.affectedRows > 0) { console.log(`Inserted ${txid}!`) }
+        if (r.affectedRows > 0) { console.log(`Inserted bPost: ${txid}!`) }
+        res.sendStatus(200);
+    } catch(e) {
+        console.log({e});
+        res.send({error: e});
+    }
+});
+app.post('/bReply', async(req, res) => {
+    try {
+        const { txid } = req.body;
+        const r = await replyIdx(req.body);
+        if (r.affectedRows > 0) { console.log(`Inserted reply: ${txid}!`) }
         res.sendStatus(200);
     } catch(e) {
         console.log({e});
