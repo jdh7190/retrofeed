@@ -13,7 +13,7 @@ const manageContent = (content, con) => {
     if (content.includes('twitter.com')) {
         const tweet = extractTweetUrl(content)
         const pathArray = tweet.split('/');
-        if (pathArray.length < 5) {
+        if (pathArray.length > 5) {
             let id = pathArray[5].trim();
             id = id.includes('?') ? id.split('?')[0] : id;
             const div = document.createElement('div');
