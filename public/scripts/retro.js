@@ -13,19 +13,21 @@ const manageContent = (content, con) => {
     if (content.includes('twitter.com')) {
         const tweet = extractTweetUrl(content)
         const pathArray = tweet.split('/');
-        let id = pathArray[5].trim();
-        id = id.includes('?') ? id.split('?')[0] : id;
-        const div = document.createElement('div');
-        div.id = id;
-        const blockquote = document.createElement('blockquote');
-        blockquote.className = 'twitter-tweet';
-        blockquote.setAttribute('data-theme', 'dark');
-        const a = document.createElement('a');
-        a.href = tweet;
-        a.rel = 'noreferrer';
-        blockquote.appendChild(a);
-        div.appendChild(blockquote);
-        con.appendChild(div);
+        if (pathArray.length < 5) {
+            let id = pathArray[5].trim();
+            id = id.includes('?') ? id.split('?')[0] : id;
+            const div = document.createElement('div');
+            div.id = id;
+            const blockquote = document.createElement('blockquote');
+            blockquote.className = 'twitter-tweet';
+            blockquote.setAttribute('data-theme', 'dark');
+            const a = document.createElement('a');
+            a.href = tweet;
+            a.rel = 'noreferrer';
+            blockquote.appendChild(a);
+            div.appendChild(blockquote);
+            con.appendChild(div);
+        }
         return;
     }
     if (content.indexOf("youtu") >= 0) {
