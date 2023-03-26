@@ -1,4 +1,4 @@
-var CACHE_NAME = 'v0.44';
+var CACHE_NAME = 'v0.45';
 var urlsToCache = [
   '/index.html',
   '/manifest.json',
