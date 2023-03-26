@@ -55,7 +55,7 @@ const initRun = () => {
     run = new Run({
         owner: localStorage.ownerKey,
         purse: 'L2ASAwmxR72tbBTTrtR87sjpXeRiAgTkrxa1G8GJuCBKGRGwgiQx',
-        api,
+        api: 'whatsonchain',
         timeout: 90000,
         state: new Run.plugins.RunDB('http://localhost:9004'),
         trust: '*'

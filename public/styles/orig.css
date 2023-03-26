@@ -93,6 +93,7 @@
     height: auto;
     max-height: 500px;
     margin-top: 10px;
+    border-radius: 5px;
 }
 .posts {
     width: 100%;

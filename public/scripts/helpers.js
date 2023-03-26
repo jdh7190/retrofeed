@@ -5,7 +5,8 @@ const base64ToArrayBuffer = base64 => {
     return bytes;
 }
 const arrBuf2b64 = arrbuf => {
-    const base64String = btoa(String.fromCharCode(...new Uint8Array(arrbuf)));
+    const s = String.fromCharCode(...new Uint8Array(arrbuf));
+    const base64String = btoa(s);
     return base64String;
 }
 const strToArrayBuffer = binary_string => {
@@ -225,4 +226,13 @@ const tzCreatedDateTime = createdDateTime => {
     const ld = new Date(createdDateTime);
     const tzoffset = (new Date()).getTimezoneOffset() * 60000;
     return new Date(ld.getTime() - tzoffset).toISOString().slice(0, 19).replace('T', ' ');
+}
+const buf2Str = buf => {
+    const decoder = new TextDecoder('utf8');
+    return decoder.decode(buf);
+}
+const getValue = (arr, value) => {
+    const increment = value === 'tx' || value === 'context' || value === 'channel' || value === 'club' ? 2 : 1;
+    const idx = arr.findIndex(a => a === value) + increment;
+    return arr[idx];
 }

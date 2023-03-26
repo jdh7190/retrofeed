@@ -43,7 +43,12 @@ const bsvPrice = async set => {
     if (set) { localStorage.rate = jres.rate }
     return jres;
 }
-const getImage = async(url) => {
+const rawTransaction = async txid => {
+    const r = await fetch(`https://api.whatsonchain.com/v1/bsv/main/tx/${txid}/hex`);
+    const raw = await r.text();
+    return raw;
+}
+const getImage = async url => {
     let res = await fetch('/image', {
         method: 'post',
         headers: {  'content-type': 'application/json' },
@@ -64,4 +69,26 @@ const getRelayXRUNAddress = async handle => {
         return jres?.data;
     }
     catch (e) { alert('Please enter a valid RelayX paymail!'); return '' }
+}
+const inscriptionNumber = async(txid, vout) => {
+    try {
+        const r = await fetch(`https://ordinals.gorillapool.io/api/inscriptions/origin/${txid}_${vout}`);
+        const res = await r.json();
+        if (res !== null) {
+            return res[0].id;
+        } else { throw `Error fetching inscription numbers.` }
+    } catch(e) {
+        console.log(e);
+        return e;
+    }
+}
+const bResolver = async txid => {
+    try {
+        const raw = await rawTransaction(txid);
+        const bsvtx = bsv.Transaction(raw);
+        const BOutput = bsvtx.outputs.find(out => out.satoshis === 0);
+        return BOutput;
+    } catch(e) {
+        console.log(e);
+    }
 }

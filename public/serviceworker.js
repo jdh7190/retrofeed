@@ -1,10 +1,11 @@
-var CACHE_NAME = 'v0.42';
+var CACHE_NAME = 'v0.44';
 var urlsToCache = [
   '/index.html',
   '/manifest.json',
   '/info/index.html',
   '/profile/index.html',
   '/reader/index.html',
+  '/sMon/index.html',
   '/tx/index.html',
   '/scripts/api.js',
   '/scripts/bSocial.js',
@@ -17,6 +18,7 @@ var urlsToCache = [
   '/scripts/interactions.js',
   '/scripts/like.js',
   '/scripts/message.js',
+  '/scripts/ordinals.js',
   '/scripts/picmo.min.js',
   '/scripts/popup-picker.min.js',
   '/scripts/post.js',
@@ -28,6 +30,7 @@ var urlsToCache = [
   '/styles/icons.css',
   '/styles/info.css',
   '/styles/modal.css',
+  '/styles/ordinals.css',
   '/styles/orig.css',
   '/styles/profile.css',
   '/styles/pwa.min.css',
@@ -48,7 +51,8 @@ var urlsToCache = [
   '/assets/sounds/nes_coin.wav',
   '/assets/sounds/get_heart.wav',
   '/assets/sounds/pickupCoin.wav',
-  '/assets/fonts/ndsbios.ttf'
+  '/assets/fonts/ndsbios.ttf',
+  '/sMon/stats/sMonStats.js'
 ]
 self.addEventListener('install', event => {
   event.waitUntil(

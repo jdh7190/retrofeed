@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>sMon Robots - retrofeed</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="utf-8">
+        <meta property="og:title" content="retrofeed"/>
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="https://retrofeed.me/sMon">
+        <meta property="og:image:url" content="https://retrofeed.me/assets/images/sMon_thumb.png">
+        <meta property="og:description" content="sMon - Collection of 1,000 Robots on Bitcoin">
+        <meta name="description" content="sMon - Collection of 1,000 Robots on Bitcoin">
+        <meta name="theme-color" content="#212529">
+        <meta name="twitter:card" content="summary"/>
+        <meta name="twitter:creator" content="@cryptoacorns"/>
+        <meta name="twitter:image" content="https://retrofeed.me/assets/images/sMon_thumb.png"/>
+        <link href="../styles/base.css" rel="stylesheet" type="text/css">
+        <link href="../styles/modal.css" rel="stylesheet" type="text/css">
+        <link href="../styles/items.css" rel="stylesheet" type="text/css">
+        <link href="../styles/ordinals.css" rel="stylesheet" type="text/css">
+        <link rel="manifest" href="../manifest.json">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/uyouthe/pwacss/pwacss.min.css">
+        <link rel="apple-touch-icon" href="../assets/images/icon_192_noback.png">
+        <script src="../scripts/helpers.js"></script>
+        <script src="../scripts/config.js"></script>
+        <script src="../scripts/api.js"></script>
+    </head>
+    <body>
+        <div class="page">
+            <div class="header">
+                <a href="/profile" class="prof"><img id="prof" class="avatar"></a>
+                <div class="title center">sMon Robots</div>
+                <a class="top-left-icon" onclick="goBack()"><img src="../assets/images/back.png"></a>
+            </div>
+            <div class="item-container center">
+                <div class="inventory" id="inventory">
+                    <div class="invent-label"></div>
+                    <div class="items" id="itemList"></div>
+                </div>
+            </div>
+        </div>
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+              <span class="close">&times;</span>
+              <a class="tx" target="_blank">#tx</a>
+              <div class="modal-img" id="modalImg"></div>
+              <div class="info"></div>
+              <div class="stats"></div>
+              <div class="modal-text" id="modalTxt"></div>
+              <audio controls class="mon-sound center" id="monSound"></audio>
+            </div>
+        </div>
+    </body>
+    <script src="../scripts/html.js"></script>
+    <script src="../sMon/stats/sMonStats.js"></script>
+    <script src="../scripts/ordinals.js"></script>
+</html>
