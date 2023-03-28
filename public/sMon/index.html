@@ -16,6 +16,7 @@
         <meta name="twitter:creator" content="@cryptoacorns"/>
         <meta name="twitter:image" content="https://retrofeed.me/assets/images/sMon_thumb.png"/>
         <link href="../styles/base.css" rel="stylesheet" type="text/css">
+        <link href="../styles/orig.css" rel="stylesheet" type="text/css">
         <link href="../styles/modal.css" rel="stylesheet" type="text/css">
         <link href="../styles/items.css" rel="stylesheet" type="text/css">
         <link href="../styles/ordinals.css" rel="stylesheet" type="text/css">
@@ -32,6 +33,14 @@
                 <a href="/profile" class="prof"><img id="prof" class="avatar"></a>
                 <div class="title center">sMon Robots</div>
                 <a class="top-left-icon" onclick="goBack()"><img src="../assets/images/back.png"></a>
+            </div>
+            <div class="selection">
+                <select required id="order" class="filter-sort">
+                    <option value="0">Lowest #</option>
+                    <option value="1">Highest #</option>
+                    <option value="2">Highest Stats</option>
+                    <option value="3">Sound Length</option>
+                </select>
             </div>
             <div class="item-container center">
                 <div class="inventory" id="inventory">

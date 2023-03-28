@@ -80,28 +80,45 @@ const createEntry = ord => {
     div.appendChild(span);
     itemList.appendChild(div);
 }
-const urlParams = new URLSearchParams(location.search);
-const txid = 'e17d7856c375640427943395d2341b6ed75f73afc8b22bb3681987278978a584';
-const fetchOrdinal = async() => {
-    if (txid) {
-        loadingDlg('Blowing in the cartridge...');
-        let inscriptionId = await inscriptionNumber(txid, 0);
-        for (let i = 0; i < 1000; i++) {
-            const ord = { text: `Inscription #${inscriptionId}`, location: `${txid}_${i}` }
-            const img = document.createElement('img');
-            img.alt = 'bfile';
-            img.src = `../sMon/images/${ord.location}.png`;
-            ord.img = img.outerHTML;
-            const {stats} = sMonStats.find(sMon => sMon.origin === ord.location);
-            ord.stats = JSON.parse(stats);
-            ord.monType = 'Robot';
-            ord.audio = true;
-            ord.inscriptionId = inscriptionId;
-            ord.vout = i;
-            createEntry(ord);
-            inscriptionId++;
-        }
-        loadingDlg('Blowing in the cartridge...');
-    }
+const processSMon = (mon, i) => {
+    const { inscriptionId, origin, stats } = mon;
+    const ord = { text: `Inscription #${inscriptionId}`, location: origin }
+    const img = document.createElement('img');
+    img.alt = 'bfile';
+    img.src = `../sMon/images/${ord.location}.png`;
+    ord.img = img.outerHTML;
+    ord.stats = JSON.parse(stats);
+    ord.monType = 'Robot';
+    ord.audio = true;
+    ord.inscriptionId = inscriptionId;
+    ord.vout = i;
+    createEntry(ord);
 }
-fetchOrdinal();
+const sortSMon = (arr, val) => {
+    return arr.sort((a, b) => {
+        if (val === 0) {
+            return a.inscriptionId - b.inscriptionId;
+        } else if (val === 1) {
+            return b.inscriptionId - a.inscriptionId;
+        } else if (val === 2) {
+            return b.totalStats - a.totalStats;
+        } else if (val === 3) {
+            return b.soundLength - a.soundLength;
+        }
+    })
+}
+const fetchOrdinals = async(sort = 0) => {
+    loadingDlg('Blowing in the cartridge');
+    await sleep(250);
+    sortSMon(sMonStats, sort);
+    for (let i = 0; i < 1000; i++) {
+        processSMon(sMonStats[i], i)
+    }
+    loadingDlg();
+}
+document.getElementById("order").onchange = () => {
+    let selOrder = parseInt(document.getElementById("order").value);
+    document.getElementById('itemList').innerHTML = '';
+    fetchOrdinals(selOrder)
+}
+fetchOrdinals(0);
