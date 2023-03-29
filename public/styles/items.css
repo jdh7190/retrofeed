@@ -26,15 +26,16 @@ body {
 }
 .items > div {
     text-align: center;
-    margin: 12px;
+    margin: 16px 12px 12px 12px;
 }
 .item-card {
-    cursor: pointer;
+    position: relative;
 }
 .icon {
     width: 72px;
     height: 72px;
     object-fit: contain;
+    cursor: pointer;
 }
 .item-text {
     top: 10px;

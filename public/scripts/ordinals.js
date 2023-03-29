@@ -1,6 +1,10 @@
 const m = document.getElementById('myModal');
 const modalTxt = document.getElementById('modalTxt');
 const modalImg = document.getElementById('modalImg');
+const heartSound = new Audio();
+heartSound.src = '/assets/sounds/heartpiece.wav';
+const bSocial = new BSocial(APP);
+var sMonLikes = [];
 const inscriptionDetails = inscription => {
     m.style.display = 'block';
     const type = inscription.monType.charAt(0).toUpperCase() + inscription.monType.slice(1);
@@ -62,6 +66,44 @@ const inscriptionDetails = inscription => {
         monSound.play();
     }
 }
+async function likeMon(loc) {
+    if (!localStorage.hcauth) { 
+        location.href = '/profile';
+        return;
+    }
+    const likedTxid = loc;
+    const heart = document.getElementById(likedTxid);
+    loadingLike = true;
+    setInterval(() => {
+        if (loadingLike) {
+            if (heart.className.includes('is-empty')) { heart.className = 'like-heart nes-icon heart is-small is-half' }
+            else if (heart.className.includes('half')) { heart.className = 'like-heart nes-icon heart is-small' }
+            else { heart.className = 'like-heart nes-icon heart is-small is-empty' }
+        }
+        else { return }
+    }, 400);
+    const likeCount = parseInt(document.getElementById(`${likedTxid}_count`).innerText);
+    const emoji = '🖤';
+    const origin = `ord://${likedTxid.split('-')[0]}`;
+    const l = bSocial.like(origin, emoji);
+    const arrops = l.getOps('utf8');
+    let hexarrops = ['6a'];
+    arrops.forEach(o => { hexarrops.push(str2Hex(o)) })
+    hexarrops.push('7c');
+    const b2sign = hexArrayToBSVBuf(hexarrops);
+    const bsvPrivateKey = bsv.PrivateKey.fromWIF(localStorage.ownerKey);
+    const signature = bsvMessage.sign(b2sign.toString(), bsvPrivateKey);
+    const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', localStorage.ownerAddress, signature]);
+    let hexarr = [];
+    payload.forEach(p => { hexarr.push(str2Hex(p)) })
+    const likePayload = { emoji, likedTxid: origin, likedHandle: 'shua', hexcode: '2665' }
+    const p = await hcPost(hexarr, 'like', likePayload);
+    console.log({p})
+    loadingLike = false;
+    heartSound.play();
+    document.getElementById(likedTxid).className = `like-heart nes-icon heart is-small`;
+    document.getElementById(`${likedTxid}_count`).innerText = likeCount + 1;
+}
 const createEntry = ord => {
     const div = document.createElement('div');
     div.className = 'item-card';
@@ -73,11 +115,21 @@ const createEntry = ord => {
         templateImg.innerHTML = ord.img.trim();
         const img = templateImg.content.firstChild;
         img.className = 'icon center';
+        img.onclick = () => { inscriptionDetails(ord) }
         div.appendChild(img);
-        div.onclick = () => { inscriptionDetails(ord) }
     }
     span.innerHTML = ord.text;
     div.appendChild(span);
+    const i = document.createElement('i');
+    i.className = `like-heart nes-icon heart is-small is-empty`;
+    i.id = `${ord.location}-heart`;
+    i.onclick = () => { likeMon(i.id) }
+    div.appendChild(i);
+    const numLikes = document.createElement('var');
+    numLikes.className = 'ordLikes';
+    numLikes.id = `${i.id}_count`;
+    numLikes.innerText = ord?.numLikes || 0;
+    div.appendChild(numLikes);
     itemList.appendChild(div);
 }
 const processSMon = (mon, i) => {
@@ -92,6 +144,10 @@ const processSMon = (mon, i) => {
     ord.audio = true;
     ord.inscriptionId = inscriptionId;
     ord.vout = i;
+    const likes = sMonLikes.find(sMon => sMon?.likedOrd === origin);
+    if (likes !== undefined) {
+        ord.numLikes = likes.numLikes;
+    }
     createEntry(ord);
 }
 const sortSMon = (arr, val) => {
@@ -110,15 +166,31 @@ const sortSMon = (arr, val) => {
 const fetchOrdinals = async(sort = 0) => {
     loadingDlg('Blowing in the cartridge');
     await sleep(250);
-    sortSMon(sMonStats, sort);
-    for (let i = 0; i < 1000; i++) {
-        processSMon(sMonStats[i], i)
+    sMonLikes = await getOrdLikes();
+    if (sort < 4) {
+        sortSMon(sMonStats, sort);
+        for (let i = 0; i < 1000; i++) {
+            processSMon(sMonStats[i], i);
+        }
+    } else {
+        const likedSMon = sMonLikes.map(sMon => sMon.likedOrd);
+        for (let sMonLike of sMonLikes) {
+            const sMon = sMonStats.find(sMon => sMon.origin === sMonLike.likedOrd);
+            const idx = sMon.origin.split('_')[1];
+            processSMon(sMon, idx);
+        }
+        for (let i = 0; i < 1000 - sMonLikes.length; i++) {
+            if (!likedSMon.includes(sMonStats[i].origin)) {
+                processSMon(sMonStats[i], i)
+            }
+        }
     }
     loadingDlg();
 }
 document.getElementById("order").onchange = () => {
     let selOrder = parseInt(document.getElementById("order").value);
     document.getElementById('itemList').innerHTML = '';
-    fetchOrdinals(selOrder)
+    fetchOrdinals(selOrder);
+    m.style.display = 'none';
 }
 fetchOrdinals(0);

@@ -16,3 +16,17 @@
 .selection {
     margin: 15px 20px 10px 20px;
 }
+.like-heart {
+    left: 0px;
+    top: 120px;
+    position: absolute;
+}
+.is-empty {
+    cursor: pointer;
+}
+.ordLikes {
+    left: 15px;
+    top: 130px;
+    position: absolute;
+    font-size: 16px;
+}

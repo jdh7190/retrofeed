@@ -29,6 +29,11 @@ const getMyLikes = async createdDateTime => {
     const res = await r.json();
     return res;
 }
+const getOrdLikes = async() => {
+    const r = await fetch(`/ordLikes`, { method: 'post' });
+    const res = await r.json();
+    return res;
+}
 const getChatReactions = async createdDateTime => {
     const r = await fetch(`/chatReactions`, {
         method: 'post',

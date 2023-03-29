@@ -443,10 +443,17 @@ app.post('/hcPost', async(req, res) => {
                     { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'BSV', sendAmount: 0.000001 }
                 ]
             } else {
-                paymentParameters.payments = [
-                    { destination: likePayload.likedHandle, currencyCode: 'USD', sendAmount: 0.009 },
-                    { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: 0.001 }
-                ]
+                if (likePayload?.likedTxid.includes('ord://')) {
+                    paymentParameters.payments = [
+                        { destination: likePayload.likedHandle, currencyCode: 'USD', sendAmount: 0.0009 },
+                        { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: 0.0001 }
+                    ]
+                } else {
+                    paymentParameters.payments = [
+                        { destination: likePayload.likedHandle, currencyCode: 'USD', sendAmount: 0.009 },
+                        { destination: '1KMSA5QxXHTTSj7PpNFRBCRJFQnCgtTwyU', currencyCode: 'USD', sendAmount: 0.001 }
+                    ]
+                }
             }
         }
         if (tipPayload?.handle) {
@@ -625,6 +632,16 @@ app.post('/myLikes', async(req, res) => {
     try {
         const stmt = `SELECT likedTxid from likes where handle = '${handle}' and createdDateTime >= '${createdDateTime}' and hexcode = '2665'`;
         const r = await sqlDB.sqlPromise(stmt, `Failed to query likes for ${handle}`, 'No likes found.', pool);
+        res.send(r);
+    } catch(e) {
+        console.log(e);
+        res.send({error:e})
+    }
+})
+app.post('/ordLikes', async(req, res) => {
+    try {
+        const stmt = `SELECT count(id) as numLikes, substring(likedTxid, 7, 69) as likedOrd from retro.likes where likes.likedTxid like '%ord://%' group by likedTxid order by numLikes desc`;
+        const r = await sqlDB.sqlPromise(stmt, `Failed to query ordinal likes.`, 'No ordinal likes found.', pool);
         res.send(r);
     } catch(e) {
         console.log(e);
