@@ -1,4 +1,4 @@
-var CACHE_NAME = 'v0.47';
+var CACHE_NAME = 'v0.48';
 var urlsToCache = [
   '/index.html',
   '/manifest.json',
@@ -24,7 +24,9 @@ var urlsToCache = [
   '/scripts/post.js',
   '/scripts/profile.js',
   '/scripts/readability.js',
+  '/scripts/relayone.js',
   '/scripts/retro.js',
+  '/scripts/SHUAllet.js',
   '/styles/base.css',
   '/styles/chat.css',
   '/styles/icons.css',
@@ -36,6 +38,7 @@ var urlsToCache = [
   '/styles/pwa.min.css',
   '/styles/read.css',
   '/styles/tx.css',
+  '/styles/wallet.css',
   '/assets/images/back.png',
   '/assets/images/back.svg',
   '/assets/images/chat.png',
@@ -45,6 +48,8 @@ var urlsToCache = [
   '/assets/images/hc_icon.png',
   '/assets/images/profile.svg',
   '/assets/images/question_block_32.png',
+  '/assets/images/relayx.svg',
+  '/assets/images/shuacoin.png',
   '/assets/images/userprofile.png',
   '/assets/images/videoplay.png',
   '/assets/sounds/heartpiece.wav',

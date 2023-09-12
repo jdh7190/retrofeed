@@ -163,7 +163,7 @@ const eciesEncrypt = (text, key) => {
 }
 const decryptData = (data, key) => { return decodeURIComponent(eciesDecrypt(dataToBuf(base64ToArrayBuffer(data)), key)) }
 const decryptChatMsg = data => {
-    const decryptionKey = decryptData(localStorage.encryptedKey, localStorage.ownerKey);
+    const decryptionKey = decryptData(localStorage.encryptedKey, localStorage?.ownerKey);
     const decryptedData = decryptData(data, decryptionKey);
     return decryptedData;
 }
@@ -235,4 +235,17 @@ const getValue = (arr, value) => {
     const increment = value === 'tx' || value === 'context' || value === 'channel' || value === 'club' ? 2 : 1;
     const idx = arr.findIndex(a => a === value) + increment;
     return arr[idx];
+}
+const getPaymentTemplate = async outputs => {
+    const r = await fetch(`/outputTemplate`, {
+        method: 'post',
+        body: JSON.stringify({ outputs })
+    })
+    const { rawtx } = await r.json();
+    return rawtx;
+}
+const runPaymail = async paymail => {
+    const r = await fetch(`https://api.relayx.io/v1/paymail/run/${paymail.toLowerCase()}`);
+    const { data } = await r.json();
+    return data;
 }

@@ -86,16 +86,7 @@ async function likeMon(loc) {
     const emoji = '🖤';
     const origin = `ord://${likedTxid.split('-')[0]}`;
     const l = bSocial.like(origin, emoji);
-    const arrops = l.getOps('utf8');
-    let hexarrops = ['6a'];
-    arrops.forEach(o => { hexarrops.push(str2Hex(o)) })
-    hexarrops.push('7c');
-    const b2sign = hexArrayToBSVBuf(hexarrops);
-    const bsvPrivateKey = bsv.PrivateKey.fromWIF(localStorage.ownerKey);
-    const signature = bsvMessage.sign(b2sign.toString(), bsvPrivateKey);
-    const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', localStorage.ownerAddress, signature]);
-    let hexarr = [];
-    payload.forEach(p => { hexarr.push(str2Hex(p)) })
+    const { hexarr, payload } = signPayload(l, localStorage?.ownerKey, localStorage.ownerAddress, true);
     const likePayload = { emoji, likedTxid: origin, likedHandle: 'shua', hexcode: '2665' }
     const p = await hcPost(hexarr, 'like', likePayload);
     console.log({p})

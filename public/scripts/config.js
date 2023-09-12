@@ -3,6 +3,12 @@ const MAP_PROTOCOL_ADDRESS = '1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5';
 const AIP_PROTOCOL_ADDRESS = '15PciHG22SNLQJXMoSUaWVi7WSqc7hCfva';
 const BAP_PROTOCOL_ADDRESS = '1BAPSuaPnfGnSBM3GLV9yhxUdYe4vGbdMT';
 const BPP_PROTOCOL_ADDRESS = 'BPP';
+const P2PKH_SIGSCRIPT_SIZE = 1 + 73 + 1 + 33;
+const P2PKH_OUTPUT_SIZE = 8 + 1 + 1 + 1 + 1 + 20 + 1 + 1;
+const P2PKH_INPUT_SIZE = 36 + 1 + P2PKH_SIGSCRIPT_SIZE + 4;
+const PUB_KEY_SIZE = 66;
+const FEE_PER_KB = 1;
+const FEE_FACTOR = (FEE_PER_KB / 1000);
 const APP = 'retrofeed.me';
 const urlRegex = /(https?:\/\/[^\s]+)/g;
 const youRegex = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/;
@@ -24,3 +30,4 @@ const trustlist = [
     'c07294f0a15db4c842f24ecceaea84d7eae226f76e34af0bc42733b020f2c7ad',
     'b001aff74d723e12dbee345db6635b4b27d8b2dc617cf3e68ff50569e041987d'
 ];
+const RELAYONE_PREFIX = '1REtR5tQMR9ZJbm5WMrzf8ud6w6LyKGqP';

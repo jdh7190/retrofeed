@@ -4,14 +4,7 @@ const p = document.createElement('span');
 p.className = 'owner-address';
 p.innerText = localStorage.ownerAddress;
 ownerDetails.appendChild(p);
-if (localStorage?.icon) {
-    login.style.display = 'none';
-    inventory.style.display = 'none';
-
-} else {
-    login.style.display = 'block';
-    inventory.style.display = 'none';
-}
+inventory.style.display = 'none';
 const getHcProfile = async() => {
     if (location.href.includes('authToken')) {
         const urlParams = new URLSearchParams(location.search);
@@ -47,9 +40,53 @@ const getHcProfile = async() => {
 getHcProfile();
 const hcLogin = () => {
     if (!localStorage.hcauth) {
+        if (localStorage.walletAddress) {
+            alert(`Please logout first.`);
+            return;
+        }
         localStorage.clear();
         const appId = location.href.includes('localhost') ? '62c4621d8af65d4fbfd52f80' : '632dcca7fb8da441d62e31f9';
         location.href = `https://app.handcash.io/#/authorizeApp?referrerHandle=shua&appId=${appId}`;
     }
     else { location.href = '/' }
+}
+const relayXLogin = async() => {
+    if (localStorage.hcauth || localStorage.walletAddress) {
+        alert(`Please logout first.`);
+        return;
+    }
+    loadingDlg('Loading');
+    const token = await relayone.authBeta({withGrant:true});
+    const [payload] = token.split(".");
+    const data = JSON.parse(atob(payload));
+    console.log({data})
+    if (data?.paymail) {
+        try {
+            localStorage.paymail = data.paymail;
+            localStorage.icon = `https://a.relayx.com/u/${data.paymail}`;
+            localStorage.relayXPubkey = data.pubkey;
+            const ownerAddress = bsv.PublicKey.fromHex(data.pubkey).toAddress().toString();
+            localStorage.ownerAddress = ownerAddress;
+            const oneHandle = data.paymail.split('@')[0];
+            localStorage.username = oneHandle;
+            if (ownerAddress) {
+                await fetch('/walletAccount', {
+                    method: 'post',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({
+                        address: localStorage.paymail,
+                        ownerAddress: ownerAddress,
+                        publicKey: data.pubkey,
+                        avatarURL: localStorage.icon,
+                        handle: oneHandle,
+                        username: oneHandle
+                    })
+                });
+            }
+            loadingDlg();
+            alert(`Logged in with RelayX One Handle 1${oneHandle}!`);
+            setTimeout(() => { location.href = '/' }, 1000);
+        }
+        catch(e){ alert(e) }
+    } else { alert(`RelayX Login failed.`) }
 }

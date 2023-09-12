@@ -97,3 +97,11 @@ const bResolver = async txid => {
         console.log(e);
     }
 }
+const getUserAvatar = async paymail => {
+    const ua = await fetch(`/userAvatar`, {
+        method: 'post',
+        body: JSON.stringify({ paymail })
+    })
+    const { avatarURL } = await ua.json();
+    return avatarURL;
+}

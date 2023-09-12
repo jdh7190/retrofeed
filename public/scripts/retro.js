@@ -66,8 +66,12 @@ const createRetroPost = (post, recent, isReply) => {
     if (isReply) {
         retropost.className += ` reply-post`;
     }
-    const isRelayXHandle = post.handle.substring(0,1) === '1' ? true : false;
-    const paymentAlias = isRelayXHandle ? `${post.handle.slice(1)}@relayx.io` : `${post.handle}@handcash.io`;
+    const isRelayXHandle = post?.paymail.includes('relayx.io');
+    const isBitcoinAddress = (post.handle.slice(0,1) === '1' && post.handle.length > 25 && post.handle.length < 36)
+    let paymentAlias = '';
+    if (isRelayXHandle) { paymentAlias = post.paymail }
+    else if (isBitcoinAddress) { paymentAlias = post.handle }
+    else { paymentAlias = `${post.handle}@handcash.io` }
     const profile = document.createElement('div');
     profile.className = 'profile';
     const profileImg = document.createElement('img');
@@ -140,7 +144,9 @@ const createRetroPost = (post, recent, isReply) => {
     const avatar = isRelayXHandle ? `https://a.relayx.com/u/${paymentAlias}` : post.icon;
     profileImg.src = post.icon !== 'null' ? avatar : 'assets/images/question_block_32.png';
     userLink.href = `${location.origin}/?handle=${post.handle}`;
-    userLink.innerText = `${post?.username || ''} ${isRelayXHandle ? '' : '$'}${post?.handle}`;
+    if (isRelayXHandle) { userLink.innerText = `1${post.handle}` }
+    else if (isBitcoinAddress) { userLink.innerText = post.handle.slice(0,7) }
+    else { userLink.innerText = `$${post.handle}` }
     manageContent(post?.content, content);
     if (post?.imgs) {
         if (post.imgs.length === 64 || post.imgs.length === 67) {

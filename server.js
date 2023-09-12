@@ -8,19 +8,6 @@ const bsv = require('bsv');
 const Message = require('bsv/message');
 const { Readability } = require('@mozilla/readability');
 const { HandCashConnect } = require('@handcash/handcash-connect');
-/* const Run = require('run-sdk');
-const run = new Run({
-    owner: process.env.CONTRACT_OWNER_KEY,
-    purse: process.env.PURSE_KEY,
-    trust: '*',
-    timeout: 60000,
-    api: process.env.RUN_API,
-    state: new Run.plugins.RunDB(process.env.STATE_API_URL),
-    app: process.env.APP_NAME
-}); */
-//bsv.Transaction.DUST_AMOUNT = 100;
-//const monHelpers = require('./monhelpers');
-//const runops = require('./runops');
 const handCashConnect = new HandCashConnect({appId: process.env.APP_ID, appSecret: process.env.APP_SECRET});
 const JSDOM = require('jsdom').JSDOM;
 const app = express(), port = process.env.SERVER_PORT;
@@ -116,100 +103,6 @@ app.post('/hcaccount', async(req, res) => {
         res.send({ error: 'No profile found.' });
     }
 });
-/* class retroPurse {
-    constructor(utxos, purseKey, purseAddress) {
-        this.utxos = utxos
-        this.purseKey = purseKey
-        this.purseAddress = purseAddress
-    }
-    pay(rawtx) {
-        const tx = bsv.Transaction(rawtx);
-        tx.from(this.utxos);
-        tx.change(this.purseAddress).sign(this.purseKey);
-        return tx.toString();
-    }
-}
-const buildBTx = async(obj, purseKey, purseAddress, utxos) => {
-    const data = ['19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut', obj.buf, `${obj.filetype}/${obj.ext}`, obj.encoding, `${obj.filename}.${obj.ext}`];
-    const tx = bsv.Transaction();
-    tx.from(utxos);
-    tx.addSafeData(data);
-    tx.change(purseAddress);
-    tx.sign(purseKey);
-    const txid = await run.blockchain.broadcast(tx.toString());
-    return txid;
-}
-const mint = async(bTxid, audioTxid, ownerAddress, name, type, mintUTXOs) => {
-    run.purse = new retroPurse(mintUTXOs, process.env.MINTER_KEY, process.env.MINTER_ADDRESS);
-    const contract = await run.load(process.env.SHUA_MON_CONTRACT);
-    const metadata = { image: `b://${bTxid}`, audio: `b://${audioTxid}`, name, type };
-    const parsedValues = monHelpers.txidParse(bTxid);
-    const strength = monHelpers.evalGrowth(parsedValues.str);
-    const vitality = monHelpers.evalGrowth(parsedValues.vit);
-    const agility = monHelpers.evalGrowth(parsedValues.agl);
-    const intelligence = monHelpers.evalGrowth(parsedValues.int);
-    const luck = monHelpers.evalGrowth(parsedValues.luc);
-    const spirit = monHelpers.evalGrowth(parsedValues.spr);
-    const stats = { strength, vitality, agility, intelligence, luck, spirit }
-    const tx = new Run.Transaction();
-    tx.update(() => { new contract(ownerAddress, metadata, stats) })
-    const txid = await tx.publish();
-    console.log(`Minted at:`, txid);
-} */
-const extractUTXOs = (rawtx, addr) => {
-    try {
-        const tx = new bsv.Transaction(rawtx);
-        let utxos = [], vout = 0;
-        tx.outputs.forEach(output => {
-            let satoshis = output.satoshis;
-            let script = new bsv.Script.fromBuffer(output._scriptBuffer);
-            if (script.isSafeDataOut()) { vout++; return }
-            let pkh = bsv.Address.fromPublicKeyHash(script.getPublicKeyHash());
-            let address = pkh.toString();
-            if (address === addr) {
-                utxos.push({satoshis, txid: tx.hash, vout, script: script.toHex()});
-            }
-            vout++;
-        });
-        return utxos;
-    }
-    catch(error) {
-        console.log({error});
-        return [];
-    }
-}
-/* app.post('/mintSHUAmon', async(req, res) => {
-    const { hcauth, handle, ownerAddress, monName } = req.body;
-    try {
-        const cloudAccount = handCashConnect.getAccountFromAuthToken(hcauth);
-        const paymentParameters = {
-            appAction: 'Mint SHUAmon',
-            description: 'Mint a SHUAmon👾',
-            payments: [
-                { destination: 'shua', currencyCode: 'USD', sendAmount: 0.0025 },
-                { destination: process.env.PURSE_ADDRESS, currencyCode: 'BSV', sendAmount: 0.0000025 },
-                { destination: process.env.MINTER_ADDRESS, currencyCode: 'BSV', sendAmount: 0.000005 },
-                { destination: process.env.AUDIO_ADDRESS, currencyCode: 'BSV', sendAmount: 0.0000075 },
-            ]
-        };
-        const paymentResult = await cloudAccount.wallet.pay(paymentParameters);
-        if (paymentResult.transactionId) {
-            await runops.postTxToDB(process.env.STATE_API_URL, paymentResult.transactionId, paymentResult.rawTransactionHex);
-            const monsterData = await monHelpers.generateImage('staging', 16, paymentResult.transactionId);
-            const audioData = await monHelpers.generateAudio('audio');
-            const aUTXOs = extractUTXOs(paymentResult.rawTransactionHex, process.env.AUDIO_ADDRESS);
-            const bUTXOs = extractUTXOs(paymentResult.rawTransactionHex, process.env.PURSE_ADDRESS);
-            const mintUTXOs = extractUTXOs(paymentResult.rawTransactionHex, process.env.MINTER_ADDRESS);
-            const aTxid = await buildBTx(audioData, process.env.AUDIO_KEY, process.env.AUDIO_ADDRESS, aUTXOs);
-            const bTxid = await buildBTx(monsterData, process.env.PURSE_KEY, process.env.PURSE_ADDRESS, bUTXOs);
-            await mint(bTxid, aTxid, ownerAddress, monName, monsterData.type, mintUTXOs);
-            res.send({paymentResult});
-        }
-    } catch(e) {
-        console.log(e);
-        res.send({error:e})
-    }
-}) */
 const bPostIdx = async payload => {
     try {
         const { content, txid, rawtx, handle, image, app, context, jig, paymail, club } = payload;
@@ -429,7 +322,7 @@ app.post('/hcPost', async(req, res) => {
         }
         if (replyPayload?.replyTxid) {
             const replyHandle = await getReplyHandle(replyPayload.replyTxid);
-            const rHandle = replyHandle.substring(0,1) === '1' ? `${replyHandle.slice(1)}@relayx.io` : replyHandle;
+            const rHandle = replyHandle.substring(0,1) === '1' && replyHandle.length < 26 ? `${replyHandle.slice(1)}@relayx.io` : replyHandle;
             replyPayload.replyHandle = rHandle;
             paymentParameters.payments = [
                 { destination: rHandle, currencyCode: 'USD', sendAmount: 0.009 },
@@ -552,7 +445,7 @@ app.get('/getPosts', async(req, res) => {
     else { orderBy = 'replyCount desc' }
     const handleClause = handle ? ('where posts.handle = ' + "'" + handle + "'") : '';
     try {
-        const stmt = `SELECT posts.createdDateTime, posts.blocktime, posts.handle, posts.txid, posts.content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, posts.imgs FROM retro.posts
+        const stmt = `SELECT posts.createdDateTime, posts.blocktime, posts.handle, posts.txid, posts.content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, posts.imgs, posts.paymail FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
             left outer join retro.users on users.handle = posts.handle
         ${handleClause}
@@ -580,7 +473,7 @@ app.get('/getPosts', async(req, res) => {
 app.get('/getChats', async(req, res) => {
     const { c } = req.query;
     try {
-        const stmt = `SELECT chats.txid, text, chats.handle, chats.blocktime, username, users.avatarURL as icon, channel, chats.createdDateTime FROM retro.chats
+        const stmt = `SELECT chats.txid, text, chats.handle, chats.blocktime, username, users.avatarURL as icon, channel, chats.createdDateTime, users.paymail as paymail FROM retro.chats
             left outer join retro.users on users.handle = chats.handle OR users.paymail = chats.handle
         where encrypted = 0
         ${c ? `and channel = '${c}'` : 'and channel = ""'}
@@ -608,13 +501,13 @@ app.get('/channels', async(req, res) => {
 app.get('/getPost', async(req, res) => {
     const { txid } = req.query;
     try {
-        const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, imgs FROM retro.posts
+        const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, imgs, posts.paymail FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
             left outer join retro.users on users.handle = posts.handle
         where posts.txid = '${req.query.txid}'
         group by posts.id order by createdDateTime desc`;
         const r = await sqlDB.sqlPromise(stmt, `Failed to get post for txid ${txid}.`, `No post for txid ${txid}.`, pool);
-        const replyStmt = `SELECT replies.txid, replies.handle, content, imgs, replies.createdDateTime, count(likes.id) as likeCount, users.name as username, users.avatarURL as icon FROM retro.replies
+        const replyStmt = `SELECT replies.txid, replies.handle, content, imgs, replies.createdDateTime, count(likes.id) as likeCount, users.name as username, users.avatarURL as icon, users.paymail as paymail FROM retro.replies
             left outer join retro.likes on replies.txid = likes.likedTxid
             left outer join retro.users on retro.users.handle = replies.handle
             where repliedTxid = '${txid}'
@@ -721,6 +614,17 @@ app.post('/likeTx', async(req, res) => {
         res.send({error: e});
     }
 });
+app.post('/tipTx', async(req, res) => {
+    const {txid} = req.body;
+    try {
+        const r = await tipTxIdx(req.body);
+        if (r.affectedRows > 0) { console.log(`Inserted tip txid: ${txid}!`) }
+        res.sendStatus(200);
+    } catch(e) {
+        console.log({e});
+        res.send({error: e});
+    }
+});
 app.post('/chatTx', async(req, res) => {
     const {txid} = req.body;
     try {
@@ -743,6 +647,53 @@ app.post('/image', async(req, res) => {
     catch (e) {
         console.log({e});
         res.send({error:'Failed to fetch image for url.'})
+    }
+})
+app.post('/userAvatar', async(req, res) => {
+    if (req.body.paymail) {
+        try {
+            const stmt = `SELECT avatarURL from users where paymail = '${req.body.paymail}' LIMIT 1`;
+            const r = await sqlDB.sqlPromise(stmt, '', `No record for ${req.body.paymail} in users found.`, pool);
+            if (r?.length) {
+                res.send(r[0]);
+            } else { throw `Error querying users table.` }
+        } catch (error) {
+            console.log({error})
+            res.send({ error });
+        }
+    } else { res.send({ error: 'No profile found.' }) }
+})
+app.post('/walletAccount', async(req, res) => {
+    if (req.body.address) {
+        try {
+            const flds = ['paymail', 'publicKey', 'ownerAddress', 'handle', 'avatarURL', 'name'];
+            const vls = [req.body.address, req.body.publicKey, req.body.ownerAddress, req.body?.handle || req.body.address, req.body.avatarURL, req.body?.username || req.body.address];
+            const stmt = sqlDB.insert('users', flds, vls, true);
+            const r = await sqlDB.sqlPromise(stmt, 'Failed to register user.', '', pool);
+            if (r.affectedRows > 0) { console.log(`Registered user ${req.body.address}!`) }
+            res.send({ success: true });
+        } catch (error) {
+            console.log({error})
+            res.send({ error });
+        }
+    } else { res.send({ error: 'No profile found.' }) }
+});
+app.post('/outputTemplate', async(req, res) => {
+    const { outputs } = req.body;
+    try {
+        const penny = await helpers.getPenny();
+        const bsvtx = bsv.Transaction();
+        for (let output of outputs) {
+            const amount = output?.amount ? parseInt(output.amount*penny*100) : output.satoshis;
+            if (output.to.includes('@')) {
+                const address = await helpers.paymailAddr(output.to);
+                bsvtx.to(address, amount);
+            } else { bsvtx.to(output.to, amount) }
+        }
+        res.send({rawtx:bsvtx.toString()})
+    } catch(e) {
+        console.log(e);
+        res.send({error:e});
     }
 })
 app.listen(port, () => console.log(`Server listening on port ${port}...`));

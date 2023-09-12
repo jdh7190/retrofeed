@@ -1,0 +1,10 @@
+.backup-wallet {
+    display: none;
+}
+.wallet-balance {
+    margin: 10px;
+}
+.wallet-address {
+    font-size: 20px;
+    margin-top: 10px;
+}

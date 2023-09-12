@@ -13,7 +13,7 @@ const checkPost = () => {
 chatInput.onkeyup = e => {
     checkPost();
     if ((e.key === 'Enter' || e.keyCode === 13) && chatInput.value !== '') {
-        if (!localStorage.hcauth) { 
+        if (!localStorage.paymail) { 
             location.href = '/profile';
             return;
         }
@@ -65,37 +65,66 @@ async function coinTip() {
 }
 const emojiLike = async(emoji, hexcode, txid, handle) => {
     const l = chatApp.like(txid, emoji);
-    const arrops = l.getOps('utf8');
-    let hexarrops = ['6a'];
-    arrops.forEach(o => { hexarrops.push(str2Hex(o)) })
-    hexarrops.push('7c');
-    const b2sign = hexArrayToBSVBuf(hexarrops);
-    const bsvPrivateKey = bsv.PrivateKey.fromWIF(localStorage.ownerKey);
-    const signature = bsvMessage.sign(b2sign.toString(), bsvPrivateKey);
-    const payload = arrops.concat(['|', AIP_PROTOCOL_ADDRESS, 'BITCOIN_ECDSA', localStorage.ownerAddress, signature]);
-    let hexarr = [];
-    payload.forEach(p => { hexarr.push(str2Hex(p)) })
+    const { hexarr, payload } = signPayload(l, localStorage?.ownerKey, localStorage.ownerAddress, true);
     const likePayload = { emoji, likedTxid: txid, likedHandle: handle, hexcode }
-    const p = await hcPost(hexarr, 'emoji reaction', likePayload);
-    console.log(p);
+    if (localStorage.hcauth) {
+        const p = await hcPost(hexarr, 'emoji reaction', likePayload);
+        console.log(p);
+    } else if (localStorage.walletAddress) {
+        const pRawtx = await getPaymentTemplate([{to: handle, satoshis: 1000}]);
+        const bsvtx = bsv.Transaction(pRawtx);
+        bsvtx.addSafeData(payload);
+        const rawtx = await payForRawTx(bsvtx.toString());
+        const t = await broadcast(rawtx);
+        if (t) {
+            const lr = await fetch(`/likeTx`, {
+                method: 'post',
+                body: JSON.stringify({
+                    likedTxid: txid,
+                    txid: t,
+                    rawtx,
+                    handle: localStorage.paymail,
+                    likedHandle: handle,
+                    emoji,
+                    hexcode
+                })
+            })
+            console.log({lr})
+        }
+    } else if (localStorage.paymail.includes('relayx.io')) {
+        const outputs = [{to: handle, amount: 0.00001, currency: 'BSV'}];
+        const script = bsv.Script.buildSafeDataOut(payload).toASM();
+        outputs.push({ to: script, amount: 0, currency: 'BSV' });
+        const t = await relayone.send({outputs});
+        if (t.txid) {
+            const { rawTx } = t;
+            const lr = await fetch(`/likeTx`, {
+                method: 'post',
+                body: JSON.stringify({
+                    likedTxid: txid,
+                    txid: t.txid,
+                    rawtx: rawTx,
+                    handle: localStorage.username,
+                    likedHandle: handle,
+                    emoji,
+                    hexcode
+                })
+            })
+            console.log({lr})
+        }
+    }
     pickupCoin.play();
 }
 const customEmojis = [
-    {
-        emoji: 'SHUA',
-        label: 'SHUACoin',
-        url: '/assets/images/shua.png',
-        tags: ['bsv', 'token', 'shua'],
-        data: { id: 719 }
-    }
+    { emoji: 'SHUA', label: 'SHUACoin', url: '/assets/images/shua.png', tags: ['bsv', 'token', 'shua'], data: { id: 719 } }
 ]
 async function pickEmoji() {
-    if (!localStorage.hcauth) { 
+    if (!localStorage.paymail) { 
         location.href = '/profile';
         return;
     }
     const reactedTxid = this.id;
-    const handle = this.dataset.handle;
+    const handle = this.dataset.paymail;
     const trigger = this;
     const picker = picmoPopup.createPopup({ theme: 'dark', custom: customEmojis }, { referenceElement: trigger, triggerElement: trigger })
     picker.open();
@@ -118,7 +147,7 @@ async function pickEmoji() {
     })
 }
 async function incReaction(el) {
-    if (!localStorage.hcauth) { 
+    if (!localStorage.hcauth && !localStorage.walletAddress) { 
         location.href = '/profile';
         return;
     }
@@ -126,10 +155,11 @@ async function incReaction(el) {
         const elem = this?.id ? this : el;
         const parentTxid = elem.parentElement?.id.slice(0,64);
         const emoji = elem.innerText.split(' ')[0];
-        const handle = elem.parentElement.dataset.handle;
+        //const handle = elem.parentElement.dataset.handle;
+        const paymail = elem.parentElement.dataset.paymail;
         let count = parseInt(elem.innerText.split(' ')[1])+1;
         elem.innerText = `${emoji} ${count}`;
-        emojiLike(emoji, this.id, parentTxid, handle);
+        emojiLike(emoji, this.id, parentTxid, paymail);
     } catch(e) {
         console.log(e);
         alert(e);
@@ -209,6 +239,7 @@ const addChatMsg = o => {
     ei.id = txid;
     const userHandle = paymail !== null && paymail !== undefined ? paymail?.split('@')[0] : handle;
     ei.dataset.handle = userHandle;
+    ei.dataset.paymail = paymail;
     const msgContent = document.createElement('span');
     msgContent.className = 'm msg';
     let content = text.replace(urlRegex, url => { return `<a class="word-wrap" href='${url}' rel="noreferrer" target="_blank">${url}</a>` })
@@ -226,7 +257,7 @@ const addChatMsg = o => {
     msgContainer.className = 'msg-container';
     const chatName = document.createElement('span');
     chatName.className = 'm name';
-    chatName.innerHTML += `${userHandle} `;
+    chatName.innerHTML += `${userHandle.slice(0,1) === '1' && userHandle.length > 25 && userHandle.length < 36 ? userHandle.slice(0,7) : userHandle} `;
     msgContent.innerHTML += `${content}`;
     const t = document.createElement('a');
     t.href = txid ? `https://whatsonchain.com/tx/${txid}` : '/chat';
@@ -244,6 +275,7 @@ const addChatMsg = o => {
     emojiSection.className = 'emoji-section';
     emojiSection.id = `${txid}_es`;
     emojiSection.dataset.handle = userHandle;
+    emojiSection.dataset.paymail = paymail;
     const date = new Date(d);
     const month = date.getMonth() + 1;
     const year = date.getFullYear().toString().slice(-2);
@@ -284,7 +316,7 @@ const addChatMsg = o => {
 const buildChatMsg = (msg, channel) => {
     const p = chatApp.post();
     if (encryp) {
-        const encKey = decryptData(localStorage.encryptedKey, localStorage.ownerKey);
+        const encKey = decryptData(localStorage.encryptedKey, localStorage?.ownerKey);
         msg = eciesEncrypt(msg, encKey);
         channel = 'osg_enc';
     }
@@ -295,24 +327,70 @@ const buildChatMsg = (msg, channel) => {
         p.addMapData('context', 'channel');
         p.addMapData('channel', channel)
     } else { channel = '' }
-    const arrops = p.getOps('utf8');
-    let hexarr = [];
-    arrops.forEach(a => { hexarr.push(str2Hex(a)) })
-    return hexarr;
+    return signPayload(p, localStorage?.ownerKey, localStorage.ownerAddress);
 }
 const chat = async(msg, channel, encrypt) => {
-    const hexarr = buildChatMsg(msg, channel);
-    const mentions = extractMentions(msg);
-    const r = await hcPost(hexarr, 'chat', {
-        text: msg,
-        handle: localStorage.paymail.split('@')[0],
-        username: localStorage.username,
-        encrypted: encryp === true ? 1 : 0,
-        channel: channel || '',
-        blocktime: Math.floor(Date.now() / 1000),
-        mentions
-    });
-    return r;
+    try {
+        const mentions = extractMentions(msg);
+        const { hexarr, payload } = buildChatMsg(msg, channel);
+        if (localStorage.hcauth) {
+            const r = await hcPost(hexarr, 'chat', {
+                text: msg,
+                handle: localStorage.paymail.split('@')[0],
+                username: localStorage.username,
+                encrypted: encryp === true ? 1 : 0,
+                channel: channel || '',
+                blocktime: Math.floor(Date.now() / 1000),
+                mentions
+            });
+            return r;
+        } else if (localStorage.walletAddress) {
+            const bsvtx = bsv.Transaction();
+            bsvtx.addSafeData(payload);
+            const rawtx = await payForRawTx(bsvtx.toString());
+            const t = await broadcast(rawtx);
+            if (t) {
+                await fetch(`/chatTx`, {
+                    method: 'post',
+                    body: JSON.stringify({
+                        text: msg,
+                        txid: t,
+                        rawtx,
+                        handle: localStorage.paymail, 
+                        username: localStorage.username,
+                        encrypted: encryp === true ? 1 : 0,
+                        channel: channel || '',
+                        blocktime: Math.floor(Date.now() / 1000),
+                    })
+                })
+                return t;
+            }
+        } else if (localStorage.paymail.includes('relayx.io')) {
+            const script = bsv.Script.buildSafeDataOut(payload).toASM();
+            const outputs = [{ to: script, amount: 0, currency: 'BSV' }];
+            const t = await relayone.send({outputs});
+            if (t.txid) {
+                const { txid, rawTx } = t;
+                await fetch(`/chatTx`, {
+                    method: 'post',
+                    body: JSON.stringify({
+                        text: msg,
+                        txid,
+                        rawtx: rawTx,
+                        handle: localStorage.paymail, 
+                        username: localStorage.username,
+                        encrypted: encryp === true ? 1 : 0,
+                        channel: channel || '',
+                        blocktime: Math.floor(Date.now() / 1000),
+                    })
+                })
+                return t.txid;
+            }
+        }
+    } catch(e) {
+        console.log(e);
+        showModal(e);
+    }
 }
 const postChat = async() => {
     const cmd = chatInput.value.toLowerCase();
@@ -371,7 +449,7 @@ const postChat = async() => {
         let [c, amount] = cmd.split(' ');
         const satoshiAmount = parseInt(amount);
         if (amount > 0) {
-            const hexarr = buildChatMsg(cmd, chatChannel);
+            const {hexarr} = buildChatMsg(cmd, chatChannel);
             const obj = {
                 icon: localStorage.icon,
                 paymail: localStorage.paymail,
@@ -379,31 +457,33 @@ const postChat = async() => {
                 text: chatInput.value,
                 createdDateTime: new Date()
             }
-            addChatMsg(obj);
-            chatInput.value = '';
-            section.scrollIntoView(false);
-            const r = await fetch('/rain', {
-                method: 'post',
-                body: JSON.stringify({
-                    hcauth: localStorage.hcauth,
-                    action: 'rain',
-                    satoshis: satoshiAmount / 100000000,
-                    payload: hexarr,
-                    content: {
-                        handles: setOfHandles,
-                        channel: chatChannel,
-                        encrypted: encryp === true ? 1 : 0,
-                        blocktime: Math.floor(Date.now() / 1000),
-                        text: cmd,
-                        handle: localStorage.paymail.split('@')[0],
-                        username: localStorage.username,
-                    },
-                })
-            });
-            const res = await r.json();
-            console.log(res);
-            chatSound.play();
-            return;
+            if (localStorage.hcauth) {
+                addChatMsg(obj);
+                chatInput.value = '';
+                section.scrollIntoView(false);
+                const r = await fetch('/rain', {
+                    method: 'post',
+                    body: JSON.stringify({
+                        hcauth: localStorage.hcauth,
+                        action: 'rain',
+                        satoshis: satoshiAmount / 100000000,
+                        payload: hexarr,
+                        content: {
+                            handles: setOfHandles,
+                            channel: chatChannel,
+                            encrypted: encryp === true ? 1 : 0,
+                            blocktime: Math.floor(Date.now() / 1000),
+                            text: cmd,
+                            handle: localStorage.paymail.split('@')[0],
+                            username: localStorage.username,
+                        },
+                    })
+                });
+                const res = await r.json();
+                console.log(res);
+                chatSound.play();
+                return;
+            } else { alert(`/rain command only supported by HandCash wallet at this time.`) }
         } else {
             addEphemeralMsg(`Please enter a positive whole number of satoshis to rain to handles.
             

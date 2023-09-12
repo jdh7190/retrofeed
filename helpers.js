@@ -18,6 +18,44 @@ const readability = async url => {
     post = replaceAll(post, "'", "''");
     return post;
 }
+const paymailAddr = async paymail => {
+    const p = await fetch(`https://api.polynym.io/getAddress/${paymail}`);
+    const { address } = await p.json();
+    return address;
+}
+const getExchRate = async() => {
+    const r = await fetch(`https://api.whatsonchain.com/v1/bsv/main/exchangerate`);
+    const res = await r.json();
+    return res;
+}
+const getPenny = async() => {
+    const price = await getExchRate();
+    return Math.ceil(1000000 / price.rate);
+}
+const extractUTXOs = (rawtx, addr) => {
+    try {
+        const tx = new bsv.Transaction(rawtx);
+        let utxos = [], vout = 0;
+        tx.outputs.forEach(output => {
+            let satoshis = output.satoshis;
+            let script = new bsv.Script.fromBuffer(output._scriptBuffer);
+            if (script.isSafeDataOut()) { vout++; return }
+            let pkh = bsv.Address.fromPublicKeyHash(script.getPublicKeyHash());
+            let address = pkh.toString();
+            if (address === addr) {
+                utxos.push({satoshis, txid: tx.hash, vout, script: script.toHex()});
+            }
+            vout++;
+        });
+        return utxos;
+    }
+    catch(error) {
+        console.log({error});
+        return [];
+    }
+}
 exports.sleep = sleep;
 exports.readability = readability;
 exports.replaceAll = replaceAll;
+exports.getPenny = getPenny;
+exports.paymailAddr = paymailAddr;

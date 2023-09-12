@@ -7,10 +7,12 @@
     <link href="../styles/base.css" rel="stylesheet" type="text/css">
     <link href="../styles/profile.css" rel="stylesheet" type="text/css">
     <link href="../styles/modal.css" rel="stylesheet" type="text/css">
+    <link href="../styles/wallet.css" rel="stylesheet" type="text/css">
     <link rel="manifest" href="../manifest.json">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/uyouthe/pwacss/pwacss.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap">
     <link rel="apple-touch-icon" href="../assets/images/icon_192_noback.png">
+    <script src="../scripts/bsv.browser.min.js"></script>
     <script src="../scripts/helpers.js"></script>
     <script src="../scripts/config.js"></script>
     <script src="../scripts/api.js"></script>
@@ -30,9 +32,27 @@
                     <span>Owner Address</span>
                 </div>
             </div>
-            <div class="btns center" id="login">
+            <div class="btns center" id="shlogin">
+                <button class="btn shuallet" onclick="shualletSetup()">
+                    <img src="../assets/images/shuacoin.png" class="shuapng">
+                    <span class="btn-text">SHUAllet</span>
+                </button>
+                <div id="walletAddress" class="wallet-address"></div>
+                <div id="walletBalance" class="wallet-balance"></div>
+                <div class="backup-wallet">
+                    <button onclick="backupWallet()">Backup Wallet</button>
+                    <button onclick="sendBSV()">Send</button>
+                </div>
+            </div>
+            <div class="btns center" id="rllogin">
+                <button class="btn relayx" onclick="relayXLogin()">
+                    <img src="../assets/images/relayx.svg" class="walletsvg">
+                    <span class="btn-text">RelayX</span>
+                </button>
+            </div>
+            <div class="btns center" id="hclogin">
                 <button class="btn handcash" onclick="hcLogin()">
-                    <img src="../assets/images/hc_icon.png" class="hcsvg">
+                    <img src="../assets/images/hc_icon.png" class="walletsvg">
                     <span class="btn-text">HandCash</span>
                 </button>
             </div>
@@ -40,6 +60,7 @@
                 <span>Logout</span>
             </button>
         </div>
+        <input type="file" id="uploadFile" accept=".json" hidden>
         <div class="bottom-section center">
             <a href="/info">Info</a>
             <a href="/privacy">Privacy Policy</a>
@@ -53,5 +74,7 @@
     </div>
     </body>
     <script src="../scripts/html.js"></script>
+    <script src="../scripts/relayone.js"></script>
     <script src="../scripts/profile.js"></script>
+    <script src="../scripts/SHUAllet.js"></script>
 </html>
