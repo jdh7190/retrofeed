@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@gorillapool/js-junglebus": "^0.4.1",
     "@handcash/handcash-connect": "^0.6.15",
     "@mozilla/readability": "^0.4.2",
     "bsv": "^1.5.6",

@@ -100,7 +100,7 @@
         const heartSound = new Audio();
         heartSound.src = '/assets/sounds/heartpiece.wav';
         var selOrder = 0, loadingLike = false;
-        const requestHandle = new URLSearchParams(location.search).get('handle') || '';
+        const requestHandle = new URLSearchParams(location.search).get('paymail') || '';
         getRetroPosts(localStorage?.orderBy !== undefined ? localStorage.orderBy : 0, requestHandle)
         document.getElementById("order").onchange = () => {
             selOrder = document.getElementById("order").value;

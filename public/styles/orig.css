@@ -255,6 +255,7 @@
     padding: 10px;
     padding-bottom: 0;
     height: auto;
+    line-height: 1.25;
 }
 .urlFormat {
     overflow: hidden;

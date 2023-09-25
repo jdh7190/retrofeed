@@ -5,9 +5,16 @@ const chatApp = new BSocial(APP);
 var myLikes = [];
 const manageContent = (content, con) => {
     content = content.replace('$osg', '');
-    if (content.includes('@')) {
+    if (content.includes('data:image')) {
+        const cIdx = content.indexOf('data:image');
+        if (cIdx > -1) {
+            const image = content.slice(cIdx);
+            content = `${content.slice(0, cIdx)}<img src="${image}" class="imgfile" alt="imgfile">`
+        }
+    }
+    if (content.includes(' @')) {
         content = content.replace(tagRegex, tag => {
-            return tag?.length > 1 ? `<a class="mention" href='/?handle=${tag.slice(1)}' rel="noreferrer">${tag}</a>` : tag;
+            return tag?.length > 1 ? `<a class="mention" href='/?paymail=${tag.slice(1)}' rel="noreferrer">${tag}</a>` : tag;
         })
     }
     if (content.includes('twitter.com')) {
@@ -65,9 +72,16 @@ const createRetroPost = (post, recent, isReply) => {
     retropost.className = 'retropost';
     if (isReply) {
         retropost.className += ` reply-post`;
+        if (!post?.paymail) {
+            if ((post.handle.slice(0,1) === '1' && post.handle.length > 25 && post.handle.length < 36)) {
+                post.paymail = post.handle;
+            } else if (post.handle.slice(0,1) === '1') {
+                post.paymail = `${post.handle.slice(1)}@relayx.io`;
+            }
+        }
     }
-    const isRelayXHandle = post?.paymail.includes('relayx.io');
-    const isBitcoinAddress = (post.handle.slice(0,1) === '1' && post.handle.length > 25 && post.handle.length < 36)
+    const isRelayXHandle = post?.paymail?.includes('relayx.io');
+    const isBitcoinAddress = (post?.handle?.slice(0,1) === '1' && post?.handle?.length > 25 && post?.handle?.length < 36)
     let paymentAlias = '';
     if (isRelayXHandle) { paymentAlias = post.paymail }
     else if (isBitcoinAddress) { paymentAlias = post.handle }
@@ -142,9 +156,16 @@ const createRetroPost = (post, recent, isReply) => {
     txLink.rel = 'noreferrer';
     item.appendChild(txLink);
     const avatar = isRelayXHandle ? `https://a.relayx.com/u/${paymentAlias}` : post.icon;
-    profileImg.src = post.icon !== 'null' ? avatar : 'assets/images/question_block_32.png';
-    userLink.href = `${location.origin}/?handle=${post.handle}`;
-    if (isRelayXHandle) { userLink.innerText = `1${post.handle}` }
+    if (isRelayXHandle) {
+        profileImg.src = avatar;
+    } else if (post.icon === null || post.icon === 'null') {
+        profileImg.src = 'assets/images/question_block_32.png';
+    } else { profileImg.src = avatar }
+    userLink.href = `${location.origin}/?paymail=${post.paymail}`;
+    if (isRelayXHandle) {
+        if (post?.handle?.slice(0,1) === '1') { userLink.innerText = `${post.handle}` }
+        else { userLink.innerText = `1${post?.handle || post?.paymail.split('@')[0]}` }
+    }
     else if (isBitcoinAddress) { userLink.innerText = post.handle.slice(0,7) }
     else { userLink.innerText = `$${post.handle}` }
     manageContent(post?.content, content);
@@ -162,7 +183,7 @@ const createRetroPost = (post, recent, isReply) => {
         } else { content.innerHTML += `<img src="${post.imgs}" class="imgfile" alt="imgfile">` }
     }
     numLikes.innerText = post?.likeCount || 0;
-    timeagoSpan.innerText = timeago(new Date(post.createdDateTime));
+    timeagoSpan.innerText = timeago(new Date(post.blocktime*1000));
     retropost.appendChild(item);
     if (isReply) {
         replyContainer.prepend(retropost);
@@ -174,12 +195,14 @@ const getRetroPosts = async (selOrder, handle) => {
     loadingDlg('Blowing in the cartridge');
     document.getElementById('message-container').innerHTML = "";
     const posts = await getPosts(selOrder, handle); 
-    const d = tzCreatedDateTime(posts[posts.length-1]?.createdDateTime);
-    if (localStorage?.paymail && d) {
-        myLikes = await getMyLikes(d);
-    }
-    for (let i = 0; i < posts.length; i++) {
-        createRetroPost(posts[i]);
+    if (posts?.length) {
+        const d = tzCreatedDateTime(posts[posts.length-1]?.createdDateTime);
+        if (localStorage?.paymail && d) {
+            myLikes = await getMyLikes(d);
+        }
+        for (let i = 0; i < posts.length; i++) {
+            createRetroPost(posts[i]);
+        }
     }
     loadingDlg();
     unfurl();

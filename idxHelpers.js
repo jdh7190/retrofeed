@@ -1,0 +1,141 @@
+const bsv = require('bsv');
+const sqlDB = require('./sqlDB');
+const pool = sqlDB.pool(true);
+const sleep = timeout => { return new Promise(resolve => setTimeout(resolve, timeout)) }
+const LOCKUP_PREFIX = `2097dfd76851bf465e8f715593b217714858bbe9570ff3bd5e33840a34e20ff0262102ba79df5f8ae7604a9830f03c7933028186aede0675a16f025dc4f8be8eec0382201008ce7480da41702918d1ec8e6849ba32b4d65b1e40dc669c31a1e6306b266c`;
+const getValue = (arr, value, tx = false) => {
+    if (tx) {
+        const increment = value === 'context' || value === 'channel' || value === 'club' || value === 'tx' ? 2 : 1;
+        const idx = arr.findIndex(a => a === value) + increment;
+        return arr[idx];
+    }
+    const increment = value === 'context' || value === 'channel' || value === 'club' ? 2 : 1;
+    const idx = arr.findIndex(a => a === value) + increment;
+    return arr[idx];
+}
+const changeEndianness = string => {// change endianess of hex value before placing into ASM script
+    const result = [];
+    let len = string.length - 2;
+    while (len >= 0) {
+      result.push(string.substr(len, 2));
+      len -= 2;
+    }
+    return result.join('');
+}
+const hex2Int = hex => {
+    const reversedHex = changeEndianness(hex);
+    return parseInt(reversedHex, 16);
+}
+const replaceAll = (str, find, replace) => { return str.replace(new RegExp(find, 'g'), replace) }
+const idxTx = async(rawtx, blockHeight, blockTime) => {
+    try {
+        const bsvtx = new bsv.Transaction(rawtx);
+        const op = bsvtx.outputs.find(x => x.satoshis === 0);
+        if (!op) { rawtx = ''; return }
+        console.log(bsvtx.hash)
+        const arr = bsv.Script(op._scriptBuffer).toASM().split(' ');
+        const strArr = arr.map(a => Buffer.from(a, 'hex').toString());
+        const type = getValue(strArr, 'type');
+        const app = getValue(strArr, 'app');
+        if (type === 'post') {
+            const paymail = getValue(strArr, 'paymail');
+            if (app.length > 0 && (app === 'lodl.tech' || app === 'hodlocker.com')) {
+                const txid = bsvtx.hash;
+                const hexAddr = bsvtx.outputs[0].script?.chunks[5]?.buf.toString('hex');
+                const script = bsv.Script.fromASM(`OP_DUP OP_HASH160 ${hexAddr} OP_EQUALVERIFY OP_CHECKSIG`);
+                const address = bsv.Address.fromScript(script).toString();
+                const hexBlock = bsvtx.outputs[0].script?.chunks[6]?.buf.toString('hex');
+                const lockBlock = hex2Int(hexBlock);
+                const satoshis = bsvtx.outputs[0].satoshis;
+                const blocksLocked = lockBlock - blockHeight;
+                const txt = `${bsvtx.outputs[0].satoshis / 100000000} Bitcoin were just locked🔒 for ${blocksLocked} blocks⛏`
+                console.log(txt)
+                const content = strArr[3];
+                const contentText = replaceAll(content, "'", "''");
+                const replyTxid = getValue(strArr, 'tx', true);
+                if (replyTxid.length === 64) {
+                    const flds = ['content', 'txid', 'repliedTxid', 'address', 'app', 'paymail', 'handle', 'satoshis', 'lockHeight', 'blockHeight', 'blocktime'];
+                    const vls = [contentText, txid, replyTxid, address, app, paymail, paymail.split('@')[0], satoshis, lockBlock, blockHeight, blockTime]
+                    const stmt = sqlDB.insert('replies', flds, vls, true);
+                    await sqlDB.sqlPromise(stmt, 'Failed to insert reply to lock post.', '', pool);
+                } else {
+                    const flds = ['content', 'txid', 'address', 'app', 'paymail', 'handle', 'satoshis', 'lockHeight', 'blockHeight', 'blocktime'];
+                    const vls = [contentText, txid, address, app, paymail, paymail.split('@')[0], satoshis, lockBlock, blockHeight, blockTime]
+                    const stmt = sqlDB.insert('posts', flds, vls, true);
+                    await sqlDB.sqlPromise(stmt, 'Failed to insert lock post.', '', pool);
+                }
+            }
+        }
+        if (type === 'reply') {
+            const paymail = getValue(strArr, 'paymail');
+            if (app.length > 0 && (app === 'lodl.tech' || app === 'hodlocker.com')) {
+                const content = strArr[3];
+                const txid = bsvtx.hash;
+                const replyTxid = getValue(strArr, 'tx', true);
+                const hexAddr = bsvtx.outputs[0].script?.chunks[5]?.buf.toString('hex');
+                const script = bsv.Script.fromASM(`OP_DUP OP_HASH160 ${hexAddr} OP_EQUALVERIFY OP_CHECKSIG`);
+                const address = bsv.Address.fromScript(script).toString();
+                const hexBlock = bsvtx.outputs[0].script?.chunks[6]?.buf.toString('hex');
+                const lockBlock = hex2Int(hexBlock);
+                const satoshis = bsvtx.outputs[0].satoshis;
+                const blocksLocked = lockBlock - blockHeight;
+                const txt = `${bsvtx.outputs[0].satoshis / 100000000} Bitcoin were just locked🔒 for ${blocksLocked} blocks⛏`
+                console.log(txt)
+                const flds = ['content', 'txid', 'repliedTxid', 'address', 'app', 'paymail', 'handle', 'satoshis', 'lockHeight', 'blockHeight', 'blocktime'];
+                const contentText = replaceAll(content, "'", "''");
+                const vls = [contentText, txid, replyTxid, address, app, paymail, paymail.split('@')[0], satoshis, lockBlock, blockHeight, blockTime]
+                const stmt = sqlDB.insert('replies', flds, vls, true);
+                await sqlDB.sqlPromise(stmt, 'Failed to insert lock post.', '', pool);
+            }
+        }
+        /* if (type === 'message') {
+            const app = getValue(strArr, 'app');
+            const paymail = getValue(strArr, 'paymail');
+            if (paymail.length < 26) {
+                const text = strArr[3];
+                const channel = getValue(strArr, 'channel');
+                await fetch(`${API_URL}/chatTx`, {
+                    method: 'post',
+                    body: JSON.stringify({
+                        txid: bsvtx.hash,
+                        rawtx,
+                        handle: paymail,
+                        encrypted: 0,
+                        channel: channel || '',
+                        app,
+                        text,
+                        blocktime: time
+                    })
+                })
+            }
+            return;
+        } */
+        if (type === 'like') {
+            if (app.length > 0 && (app === 'lodl.tech' || app === 'hodlocker.com')) {
+                const likedTxid = getValue(strArr, 'tx');
+                const txid = bsvtx.hash;
+                const hexAddr = bsvtx.outputs[0].script?.chunks[5]?.buf.toString('hex');
+                const script = bsv.Script.fromASM(`OP_DUP OP_HASH160 ${hexAddr} OP_EQUALVERIFY OP_CHECKSIG`);
+                const address = bsv.Address.fromScript(script).toString();
+                const hexBlock = bsvtx.outputs[0].script?.chunks[6]?.buf.toString('hex');
+                const lockBlock = hex2Int(hexBlock);
+                const satoshis = bsvtx.outputs[0].satoshis;
+                const txt = `${bsvtx.outputs[0].satoshis / 100000000} $BSV were just locked🔒 for ${lockBlock - blockHeight} blocks!`
+                console.log(txt)
+                const flds = ['likedTxid', 'txid', 'app', 'idAddress', 'satoshis', 'lockHeight', 'blockHeight'];
+                const vls = [likedTxid, txid, app, address, satoshis, lockBlock, blockHeight]
+                const stmt = sqlDB.insert('likes', flds, vls, true);
+                await sqlDB.sqlPromise(stmt, 'Failed to insert lock.', '', pool);
+                return;
+            }
+        }
+        rawtx = '';
+        return;
+    } catch(e) {
+        console.log(e);
+        return;
+    }
+}
+exports.sleep = sleep;
+exports.getValue = getValue;
+exports.idxTx = idxTx;

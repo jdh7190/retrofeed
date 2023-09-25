@@ -438,23 +438,23 @@ app.post('/rain', async(req, res) => {
     }
 })
 app.get('/getPosts', async(req, res) => {
-    const { order, handle } = req.query;
+    const { order, paymail } = req.query;
     let orderBy;
     if (order === '0') { orderBy = 'blocktime desc, posts.id desc' }
     else if (order === '1') { orderBy = 'likeCount desc' }
     else { orderBy = 'replyCount desc' }
-    const handleClause = handle ? ('where posts.handle = ' + "'" + handle + "'") : '';
+    const paymailClause = paymail ? ('where posts.paymail = ' + "'" + paymail + "'") : '';
     try {
-        const stmt = `SELECT posts.createdDateTime, posts.blocktime, posts.handle, posts.txid, posts.content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, posts.imgs, posts.paymail FROM retro.posts
+        const stmt = `SELECT posts.createdDateTime, posts.blocktime, posts.handle, posts.paymail, posts.txid, posts.content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, posts.imgs, posts.paymail FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
-            left outer join retro.users on users.handle = posts.handle
-        ${handleClause}
+            left outer join retro.users on users.paymail = posts.paymail
+        ${paymailClause}
         group by posts.id
         order by ${orderBy} LIMIT 50`;
         const r = await sqlDB.sqlPromise(stmt, 'Failed to query for posts.', 'No posts found.', pool);
         const rStmt = `SELECT count(replies.id) as replyCount, posts.txid FROM retro.posts
             left outer join retro.replies on posts.txid = replies.repliedTxid
-            where replies.blocktime >= ${r[r.length-1].blocktime}
+            where replies.blocktime >= ${r[r.length-1]?.blocktime || 0}
         group by posts.id`;
         const rs = await sqlDB.sqlPromise(rStmt, '', '', pool);
         const replies = rs.filter(reply => reply.replyCount > 0);
@@ -507,7 +507,7 @@ app.get('/getPost', async(req, res) => {
         where posts.txid = '${req.query.txid}'
         group by posts.id order by createdDateTime desc`;
         const r = await sqlDB.sqlPromise(stmt, `Failed to get post for txid ${txid}.`, `No post for txid ${txid}.`, pool);
-        const replyStmt = `SELECT replies.txid, replies.handle, content, imgs, replies.createdDateTime, count(likes.id) as likeCount, users.name as username, users.avatarURL as icon, users.paymail as paymail FROM retro.replies
+        const replyStmt = `SELECT replies.txid, replies.handle, content, imgs, replies.createdDateTime, count(likes.id) as likeCount, users.name as username, users.avatarURL as icon, users.paymail as userPaymail, replies.paymail as paymail FROM retro.replies
             left outer join retro.likes on replies.txid = likes.likedTxid
             left outer join retro.users on retro.users.handle = replies.handle
             where repliedTxid = '${txid}'

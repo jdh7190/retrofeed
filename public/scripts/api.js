@@ -14,7 +14,7 @@ const hcPost = async(payload, action, content) => {
 }
 const getPosts = async (order, handle) => {
     let requestURL = `/getPosts/?order=${order}`;
-    if (handle) { requestURL += `&handle=${handle}` }
+    if (handle) { requestURL += `&paymail=${handle}` }
     const res = await (await fetch(requestURL)).json();
     return res;
 }
