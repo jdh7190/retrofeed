@@ -82,7 +82,7 @@
             const post = res.post[0];
             const replies = res.replies;
             const d = tzCreatedDateTime(post.createdDateTime);
-            myLikes = await getMyLikes(d);
+            myLikes = []; //await Likes(d);
             createRetroPost(post, true)
             document.getElementById(`${txid}_noReplies`).innerText = replies?.length || 0;
             replies.forEach(reply => { createRetroPost(reply, false, true) })

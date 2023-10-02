@@ -8,6 +8,7 @@ const bsv = require('bsv');
 const Message = require('bsv/message');
 const { Readability } = require('@mozilla/readability');
 const { HandCashConnect } = require('@handcash/handcash-connect');
+const { payForRawTx } = require('./pay');
 const handCashConnect = new HandCashConnect({appId: process.env.APP_ID, appSecret: process.env.APP_SECRET});
 const JSDOM = require('jsdom').JSDOM;
 const app = express(), port = process.env.SERVER_PORT;
@@ -442,10 +443,17 @@ app.get('/getPosts', async(req, res) => {
     let orderBy;
     if (order === '0') { orderBy = 'blocktime desc, posts.id desc' }
     else if (order === '1') { orderBy = 'likeCount desc' }
+    else if (order === '2') { orderBy = 'satoshis desc' }
+    else if (order === '3') { orderBy = 'posts.lockHeight desc' }
     else { orderBy = 'replyCount desc' }
-    const paymailClause = paymail ? ('where posts.paymail = ' + "'" + paymail + "'") : '';
+    let paymailClause = '';
+    if (paymail?.includes('@')) {
+        paymailClause = paymail ? ('where posts.paymail = ' + "'" + paymail + "'") : '';
+    } else if (paymail?.length > 0) {
+        paymailClause = `where posts.paymail LIKE '%${paymail}%'`;
+    }
     try {
-        const stmt = `SELECT posts.createdDateTime, posts.blocktime, posts.handle, posts.paymail, posts.txid, posts.content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, posts.imgs, posts.paymail FROM retro.posts
+        const stmt = `SELECT posts.createdDateTime, posts.blocktime, posts.handle, posts.paymail, posts.txid, posts.content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, posts.imgs, posts.paymail, sum(likes.satoshis) as satoshis, posts.satoshis as postSatoshis FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
             left outer join retro.users on users.paymail = posts.paymail
         ${paymailClause}
@@ -501,13 +509,13 @@ app.get('/channels', async(req, res) => {
 app.get('/getPost', async(req, res) => {
     const { txid } = req.query;
     try {
-        const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, imgs, posts.paymail FROM retro.posts
+        const stmt = `SELECT posts.createdDateTime, posts.handle, posts.txid, content, users.name as username, users.avatarURL as icon, count(likes.id) as likeCount, imgs, posts.paymail, posts.blocktime, (coalesce(posts.satoshis, 0) + coalesce(sum(likes.satoshis), 0)) as satoshis FROM retro.posts
             left outer join retro.likes on posts.txid = likes.likedTxid
             left outer join retro.users on users.handle = posts.handle
         where posts.txid = '${req.query.txid}'
         group by posts.id order by createdDateTime desc`;
         const r = await sqlDB.sqlPromise(stmt, `Failed to get post for txid ${txid}.`, `No post for txid ${txid}.`, pool);
-        const replyStmt = `SELECT replies.txid, replies.handle, content, imgs, replies.createdDateTime, count(likes.id) as likeCount, users.name as username, users.avatarURL as icon, users.paymail as userPaymail, replies.paymail as paymail FROM retro.replies
+        const replyStmt = `SELECT replies.txid, replies.handle, content, imgs, replies.createdDateTime, count(likes.id) as likeCount, users.name as username, users.avatarURL as icon, users.paymail as userPaymail, replies.paymail as paymail, (coalesce(replies.satoshis, 0) + coalesce(sum(likes.satoshis), 0)) as satoshis FROM retro.replies
             left outer join retro.likes on replies.txid = likes.likedTxid
             left outer join retro.users on retro.users.handle = replies.handle
             where repliedTxid = '${txid}'
@@ -694,6 +702,16 @@ app.post('/outputTemplate', async(req, res) => {
     } catch(e) {
         console.log(e);
         res.send({error:e});
+    }
+})
+app.post('/payForRawTx', async(req, res) => {
+    try {
+        const { rawtx } = req.body;
+        const paidRawTx = await payForRawTx(rawtx);
+        res.send({paidRawTx})
+    } catch(e) {
+        console.log(e);
+        res.send({error:e})
     }
 })
 app.listen(port, () => console.log(`Server listening on port ${port}...`));

@@ -159,7 +159,7 @@ const createRetroPost = (post, recent, isReply) => {
     if (isRelayXHandle) {
         profileImg.src = avatar;
     } else if (post.icon === null || post.icon === 'null') {
-        profileImg.src = 'assets/images/question_block_32.png';
+        profileImg.src = location.href.includes('/tx/') ? '../assets/images/question_block_32.png' : 'assets/images/question_block_32.png';
     } else { profileImg.src = avatar }
     userLink.href = `${location.origin}/?paymail=${post.paymail}`;
     if (isRelayXHandle) {
@@ -182,7 +182,7 @@ const createRetroPost = (post, recent, isReply) => {
             content.appendChild(cLink);
         } else { content.innerHTML += `<img src="${post.imgs}" class="imgfile" alt="imgfile">` }
     }
-    numLikes.innerText = post?.likeCount || 0;
+    numLikes.innerText = post?.satoshis > 0 ? `${(post.satoshis / 100000000).toFixed(2)}` : 0;
     timeagoSpan.innerText = timeago(new Date(post.blocktime*1000));
     retropost.appendChild(item);
     if (isReply) {
@@ -198,7 +198,7 @@ const getRetroPosts = async (selOrder, handle) => {
     if (posts?.length) {
         const d = tzCreatedDateTime(posts[posts.length-1]?.createdDateTime);
         if (localStorage?.paymail && d) {
-            myLikes = await getMyLikes(d);
+            myLikes = []; //await getMyLikes(d);
         }
         for (let i = 0; i < posts.length; i++) {
             createRetroPost(posts[i]);

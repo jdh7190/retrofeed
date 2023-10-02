@@ -105,3 +105,11 @@ const getUserAvatar = async paymail => {
     const { avatarURL } = await ua.json();
     return avatarURL;
 }
+const payForUserRawTx = async rawtx => {
+    const r = await fetch(`/payForRawTx`, {
+        method: 'post',
+        body: JSON.stringify({rawtx})
+    });
+    const { paidRawTx } = await r.json();
+    return paidRawTx;
+}

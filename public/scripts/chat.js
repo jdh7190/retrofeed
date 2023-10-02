@@ -331,23 +331,12 @@ const buildChatMsg = (msg, channel) => {
 }
 const chat = async(msg, channel, encrypt) => {
     try {
-        const mentions = extractMentions(msg);
-        const { hexarr, payload } = buildChatMsg(msg, channel);
-        if (localStorage.hcauth) {
-            const r = await hcPost(hexarr, 'chat', {
-                text: msg,
-                handle: localStorage.paymail.split('@')[0],
-                username: localStorage.username,
-                encrypted: encryp === true ? 1 : 0,
-                channel: channel || '',
-                blocktime: Math.floor(Date.now() / 1000),
-                mentions
-            });
-            return r;
-        } else if (localStorage.walletAddress) {
+        //const mentions = extractMentions(msg);
+        const { payload } = buildChatMsg(msg, channel);
+        if (localStorage?.paymail) {
             const bsvtx = bsv.Transaction();
             bsvtx.addSafeData(payload);
-            const rawtx = await payForRawTx(bsvtx.toString());
+            const rawtx = await payForUserRawTx(bsvtx.toString());
             const t = await broadcast(rawtx);
             if (t) {
                 await fetch(`/chatTx`, {
@@ -364,27 +353,6 @@ const chat = async(msg, channel, encrypt) => {
                     })
                 })
                 return t;
-            }
-        } else if (localStorage.paymail.includes('relayx.io')) {
-            const script = bsv.Script.buildSafeDataOut(payload).toASM();
-            const outputs = [{ to: script, amount: 0, currency: 'BSV' }];
-            const t = await relayone.send({outputs});
-            if (t.txid) {
-                const { txid, rawTx } = t;
-                await fetch(`/chatTx`, {
-                    method: 'post',
-                    body: JSON.stringify({
-                        text: msg,
-                        txid,
-                        rawtx: rawTx,
-                        handle: localStorage.paymail, 
-                        username: localStorage.username,
-                        encrypted: encryp === true ? 1 : 0,
-                        channel: channel || '',
-                        blocktime: Math.floor(Date.now() / 1000),
-                    })
-                })
-                return t.txid;
             }
         }
     } catch(e) {
@@ -575,7 +543,7 @@ ws.onmessage = async e => {
     console.log(`MESSAGE`, e);
     const str = await e.data.text()
     const payload = JSON.parse(str);
-    if (payload.handle !== localStorage.paymail.split('@')[0]) {
+    if (payload.paymail !== localStorage.paymail) {
         if (chatChannel === payload.channel) {
             addChatMsg(payload);
             section.scrollIntoView(false);

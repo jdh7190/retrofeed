@@ -182,6 +182,7 @@ const bPost = async (text, replyTxid) => {
     try {
         const p = replyTxid ? bSocial.reply(replyTxid) : bSocial.post();
         p.addText(post);
+        p.addMapData('paymail', localStorage.paymail);
         const file = document.querySelector('input[type="file"]')?.files[0];
         let postPayload = { text: post }
         if (replyTxid) {
@@ -192,48 +193,28 @@ const bPost = async (text, replyTxid) => {
             p.addImage(fileData);
             postPayload.image = fileData;
         }
-        const { hexarr, payload } = signPayload(p, localStorage?.ownerKey, localStorage.ownerAddress);
+        const { payload } = signPayload(p, localStorage?.ownerKey, localStorage.ownerAddress);
         const mentions = extractMentions(post);
         if (mentions?.length) { postPayload.mentions = mentions }
         const action = replyTxid ? 'reply' : 'post';
-        if (localStorage.hcauth) {
-            const res = await hcPost(hexarr, action, postPayload);
-            console.log({res});
-            if (res?.paymentResult?.transactionId) {
-                const tempPost = {
-                    content: post,
-                    createdDateTime : Date.now(),
-                    handle: localStorage.paymail.split('@')[0],
-                    icon: localStorage.icon,
-                    txid: res.paymentResult.transactionId,
-                    likeCount: 0,
-                    username: localStorage?.username || '',
-                    imgs: postPayload?.image || '',
-                    replyTxid,
-                    paymail: localStorage.paymail
-                }
-                createRetroPost(tempPost, true, replyTxid ? true : false);
-                loadingDlg();
-            } else { throw res }
-        }
-        else if (localStorage.walletAddress) {
+        if (localStorage?.paymail) {
             try {
                 const bsvtx = bsv.Transaction();
                 bsvtx.addSafeData(payload);
-                const rawtx = await payForRawTx(bsvtx.toString());
+                const rawtx = await payForUserRawTx(bsvtx.toString());
                 const t = await broadcast(rawtx);
                 if (t) {
                     const tempPost = {
                         content: post,
                         createdDateTime : Date.now(),
-                        handle: localStorage?.username,
+                        handle: localStorage.paymail.split('@')[0],
                         icon: localStorage?.icon,
                         txid: t,
                         likeCount: 0,
                         username: localStorage?.username || '',
                         imgs: postPayload?.image || '',
                         replyTxid,
-                        paymail: localStorage.walletAddress
+                        paymail: localStorage.paymail
                     }
                     createRetroPost(tempPost, true, replyTxid ? true : false);
                     loadingDlg();
@@ -267,56 +248,6 @@ const bPost = async (text, replyTxid) => {
                     console.log({bp})
                 }
             } catch(e) { throw e }
-        }
-        else if (localStorage?.paymail.includes('relayx.io')) {
-            const script = bsv.Script.buildSafeDataOut(payload).toASM();
-            const outputs = [{ to: script, amount: 0, currency: 'BSV' }];
-            const t = await relayone.send({outputs});
-            if (t.txid) {
-                const { txid, rawTx } = t;
-                const tempPost = {
-                    content: post,
-                    createdDateTime : Date.now(),
-                    handle: localStorage?.username,
-                    icon: localStorage.icon,
-                    txid,
-                    likeCount: 0,
-                    username: localStorage?.username || '',
-                    imgs: postPayload?.image || '',
-                    replyTxid,
-                    paymail: localStorage.paymail
-                }
-                createRetroPost(tempPost, true, replyTxid ? true : false);
-                loadingDlg();
-                if (action === 'reply') {
-                    const br = await fetch(`/bReply`, {
-                        method: 'post',
-                        body: JSON.stringify({
-                            content: post,
-                            txid,
-                            rawtx: rawTx,
-                            handle: localStorage.username,
-                            image: postPayload?.image,
-                            replyTxid
-                        })
-                    })
-                    console.log({br})
-                } else {
-                    const bp = await fetch(`/bPost`, {
-                        method: 'post',
-                        body: JSON.stringify({
-                            content: post, 
-                            txid,
-                            rawtx: rawTx,
-                            handle: localStorage?.username,
-                            image: postPayload?.image,
-                            app: 'retrofeed.me',
-                            paymail: localStorage.paymail,
-                        })
-                    });
-                    console.log({bp})
-                }
-            }
         }
     } catch(e) {
         loadingDlg();
