@@ -5,6 +5,7 @@ const { idxTx } = require('./idxHelpers');
 const API_URL = 'http://localhost:9003';
 const server = "junglebus.gorillapool.io";
 const mapSubId = process.env.MAP_SUBSCRIPTION;
+const LOCKUP_PREFIX = `2097dfd76851bf465e8f715593b217714858bbe9570ff3bd5e33840a34e20ff0262102ba79df5f8ae7604a9830f03c7933028186aede0675a16f025dc4f8be8eec0382201008ce7480da41702918d1ec8e6849ba32b4d65b1e40dc669c31a1e6306b266c`;
 const updateCrawl = async(height, hash) => {
     const r = await fetch(`${API_URL}/crawl`, {
         method: 'post',
@@ -24,7 +25,9 @@ const client = new JungleBusClient(server, {
 });
 const onPublish = async function(tx) {
     try {
-        await idxTx(tx.transaction, tx.block_height, tx.block_time);
+        if (tx.transaction.includes(LOCKUP_PREFIX)) {
+            await idxTx(tx.transaction, tx.block_height, tx.block_time);
+        }
     } catch(e) { console.log(`Issue with txid ${tx.id}`, e) }
 }
 const onStatus = function(message) {
