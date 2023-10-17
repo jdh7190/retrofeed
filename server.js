@@ -714,4 +714,8 @@ app.post('/payForRawTx', async(req, res) => {
         res.send({error:e})
     }
 })
+app.get('/mysqldump', async(req, res) => {
+    const file = `./dump/Dump20231017.sql`;
+    res.download(file);
+})
 app.listen(port, () => console.log(`Server listening on port ${port}...`));
